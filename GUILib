@@ -7,3 +7,56 @@ if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
 local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
 ScriptGui.Name = "ScriptGui"
+
+
+local Uis = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local visible, Usable = true, true
+
+
+
+function Lib:Window(Name)
+    local Window = {}
+
+    local Main = Instance.new("Frame", ScriptGui)
+    local MainUIGradient = Instance.new("UIGradient", Main)
+    local Mainrollup = Instance.new("Frame", Main)
+
+    Main.Active = false
+    Main.Position = UDim2.new(0,0,0.1,0)
+    Main.Size = UDim2.new(1,0,0.1,0)
+    Main.BackgroundTransparency = 0.3
+    Main.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    MainUIGradient.Rotation = 0
+    MainUIGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,125,125)),
+        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255,250,125)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(125,255,125)),
+        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(125,255,245)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(135,140,255)),
+    } 
+    Mainrollup.Active = true
+    Mainrollup.Position = UDim2.new(0,0,0,0)
+    Mainrollup.Size = UDim2.new(0.5,0,1,0)
+
+    local TweenR = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local not_show = {Position = UDim2.new(0.8,0,0.1,0), Size = UDim2.new(0.2,0,0.1,0)}
+    local show = {Position = UDim2.new(0,0,0.1,0), Size = UDim2.new(1,0,0.1,0)}
+    Mainrollup.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and Usable then
+            Usable = false
+            local goal = visible and not_show or show
+            visible = not visible
+            local tween = TweenService:Create(Main, TweenR, goal) 
+            tween:Play()
+            tween.Completed:Connect(function() 
+                Usable = true
+            end)
+        end
+    end)
+
+
+    return Window
+end
+
+return Lib
