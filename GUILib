@@ -1,0 +1,9 @@
+local Lib = {}
+
+if game.CoreGui:FindFirstChild("ScriptGui") then
+    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+end
+if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
+
+local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
+ScriptGui.Name = "ScriptGui"
