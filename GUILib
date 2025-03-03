@@ -23,8 +23,8 @@ function Lib:Window(Name)
     local Mainrollup = Instance.new("Frame", Main)
 
     Main.Active = false
-    Main.Position = UDim2.new(0,0,0.1,0)
-    Main.Size = UDim2.new(1,0,0.1,0)
+    Main.Position = UDim2.new(0,0,0.05,0)
+    Main.Size = UDim2.new(1,0,0.7,0)
     Main.BackgroundTransparency = 0.3
     Main.BackgroundColor3 = Color3.fromRGB(255,255,255)
     MainUIGradient.Rotation = 0
@@ -37,9 +37,9 @@ function Lib:Window(Name)
     } 
     Mainrollup.Active = true
     Mainrollup.Position = UDim2.new(0,0,0,0)
-    Mainrollup.Size = UDim2.new(0.5,0,1,0)
+    Mainrollup.Size = UDim2.new(0.05,0,1,0)
 
-    local TweenR = TweenInfo.new(3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local TweenR = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local not_show = {Position = UDim2.new(0.8,0,0.1,0), Size = UDim2.new(0.2,0,0.1,0)}
     local show = {Position = UDim2.new(0,0,0.1,0), Size = UDim2.new(1,0,0.1,0)}
     Mainrollup.InputBegan:Connect(function(input)
