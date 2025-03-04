@@ -21,6 +21,7 @@ function Lib:Window(Name)
     local Main = Instance.new("Frame", ScriptGui)
     local MainUIGradient = Instance.new("UIGradient", Main)
     local Mainrollup = Instance.new("Frame", Main)
+    local Mainrollupimage = Instance.new("ImageButton", Mainrollup)
 
     Main.Active = false
     Main.Position = UDim2.new(0,0,0.02,0)
@@ -38,6 +39,10 @@ function Lib:Window(Name)
     Mainrollup.Active = true
     Mainrollup.Position = UDim2.new(0,0,0,0)
     Mainrollup.Size = UDim2.new(0.03,0,1,0)
+    Mainrollup.BackgroundTransparency = 1
+
+    Mainrollupimage.Size = UDim2.new(1,0,1,0)
+    Mainrollupimage.Position = UDim2.new(0,0,0,0)
 
     local TweenMain = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local TweenButton = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
