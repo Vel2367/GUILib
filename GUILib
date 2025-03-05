@@ -20,22 +20,25 @@ function Lib:Window(Name)
 
     local Main = Instance.new("Frame", ScriptGui)
     local MainUIGradient = Instance.new("UIGradient", Main)
+    local MainUICorner = Instance.new("UICorner", Main)
     local Mainrollup = Instance.new("Frame", Main)
     local Mainrollupimage = Instance.new("ImageButton", Mainrollup)
+    local MainrollupimageCorner = Instance.new("UICorner", Mainrollupimage)
 
     Main.Active = false
-    Main.Position = UDim2.new(0,0,0.02,0)
+    Main.Position = UDim2.new(0,0,0.015,0)
     Main.Size = UDim2.new(1,0,0.07,0)
     Main.BackgroundTransparency = 0.3
     Main.BackgroundColor3 = Color3.fromRGB(255,255,255)
     MainUIGradient.Rotation = 0
     MainUIGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,125,125)),
-        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255,250,125)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(125,255,125)),
-        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(125,255,245)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(135,140,255)),
+        ColorSequenceKeypoint.new(0, Color3.new(0.274510, 0.274510, 0.274510)),
+        ColorSequenceKeypoint.new(0.25, Color3.new(0.447059, 0.447059, 0.447059)),
+        ColorSequenceKeypoint.new(0.5, Color3.new(0.745098, 0.745098, 0.745098)),
+        ColorSequenceKeypoint.new(0.75, Color3.new(0.447059, 0.447059, 0.447059)),
+        ColorSequenceKeypoint.new(1, Color3.new(0.478431, 0.458824, 0.458824)),
     } 
+    MainUICorner.CornerRadius = UDim.new(0,20)
     Mainrollup.Active = true
     Mainrollup.Position = UDim2.new(0,0,0,0)
     Mainrollup.Size = UDim2.new(0.03,0,1,0)
@@ -43,6 +46,10 @@ function Lib:Window(Name)
 
     Mainrollupimage.Size = UDim2.new(1,0,1,0)
     Mainrollupimage.Position = UDim2.new(0,0,0,0)
+    Mainrollupimage.BackgroundColor3 = Color3.new(1.000000, 1.000000, 1.000000)
+    
+
+    MainrollupimageCorner.CornerRadius = UDim.new(1, 0)
 
     local TweenMain = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local TweenButton = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
