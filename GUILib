@@ -21,8 +21,9 @@ function Lib:Window(Name)
     local Main = Instance.new("Frame", ScriptGui)
     local MainUIGradient = Instance.new("UIGradient", Main)
     local MainUICorner = Instance.new("UICorner", Main)
-    local Mainrollup = Instance.new("Frame", Main)
-
+    local Mainrollup = Instance.new("ImageLabel", Main)
+    local MainrollupUICorenr = Instance.new("UICorner", Mainrollup)
+    local MainrollupUIGradient = Instance.new("UIGradient", Mainrollup)
 
     Main.Active = false
     Main.Position = UDim2.new(0,0,0.015,0)
@@ -43,7 +44,13 @@ function Lib:Window(Name)
     Mainrollup.Active = true
     Mainrollup.Position = UDim2.new(0,0,0,0)
     Mainrollup.Size = UDim2.new(0.03,0,1,0)
-
+    Mainrollup.Image = "rbxassetid://121009590839684"
+    MainrollupUICorenr.CornerRadius = UDim.new(1,0)
+    MainrollupUIGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.new(0.180392, 0.180392, 0.180392)),
+        ColorSequenceKeypoint.new(1, Color3.new(0.780392, 0.776471, 0.776471))
+    } 
+    
 
     local TweenMain = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local TweenButton = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
