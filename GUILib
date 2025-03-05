@@ -54,10 +54,10 @@ function Lib:Window(Name)
 
     local TweenMain = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local TweenButton = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local not_show = {Position = UDim2.new(0.8, 0, 0.01, 0), Size = UDim2.new(0.2, 0, 0.1, 0)}
+    local not_show = {Position = UDim2.new(0.8, 0, 0.01, 0), Size = UDim2.new(0.2, 0, 0.07, 0)}
     local show = {Position = UDim2.new(0, 0, 0.02, 0), Size = UDim2.new(1, 0, 0.07, 0)}
     local show_button = {Size = UDim2.new(0.03, 0, 1, 0)}
-    local not_show_button = {Size = UDim2.new(0.15, 0, 1, 0)}
+    local not_show_button = {Size = UDim2.new(0.03, 0, 1, 0)}
     Mainrollup.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 and Usable then
             Usable = false
