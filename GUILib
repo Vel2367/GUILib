@@ -46,7 +46,7 @@ function Lib:Window(Name)
     WindowMinimize.Active = true
     WindowMinimize.Position = UDim2.new(0.95,0,0,0)
     WindowMinimize.Size = UDim2.new(0,20,1,0)
-    WindowMinimize.Image = "rbxassetid://95325278852623"
+    WindowMinimize.Image = "rbxassetid://102462457804057"
     WindowMinimize.BackgroundTransparency = 1
 
     function Drag(Frame)
