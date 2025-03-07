@@ -21,12 +21,20 @@ function Lib:Window(Name)
     local Main = Instance.new("Frame", ScriptGui)
     local MainUICorner = Instance.new("UICorner", Main)
     local MainUIGradient = Instance.new("UIGradient", Main)
+    local MainUIStroke = Instance.new("UIStroke", Main)
 
     Main.Size = UDim2.new(0,450,0,550)
     Main.Position = UDim2.new(0.5,0,0.3,0)
     Main.Active = true
     MainUICorner.CornerRadius = UDim.new(0,20)
-
+    MainUIGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25,25,25)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(35,35,35)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25,25,25))
+    }
+    MainUIStroke.Thickness = 4
+    MainUIStroke.Color = Color3.fromRGB(35,35,35)
+    MainUIStroke.Transparency = 0.01
 
     function Drag(Frame)
         local dragging = false
