@@ -12,7 +12,7 @@ ScriptGui.Name = "ScriptGui"
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local visible, Usable = true, true
-
+local Player = game.Players.LocalPlayer
 
 
 function Lib:Window(Name)
@@ -26,6 +26,12 @@ function Lib:Window(Name)
 
     local WindowPonel = Instance.new("Frame", Main)
     local WindowMinimize = Instance.new("ImageButton", WindowPonel)
+    
+    local PlayerInfo = Instance.new("Frame", Main)
+    local PlayerInfoUICorner = Instance.new("UICorner", PlayerInfo)
+    local PlayerInfoUIGradient = Instance.new("UIGradient", PlayerInfo)
+    local PlayerIcon = Instance.new("ImageLabel",PlayerInfo)
+    local PlayerIconUICorner = Instance.new("UICorner", PlayerIcon)
 
     Main.Size = UDim2.new(0,450,0,550)
     Main.Position = UDim2.new(0.5,0,0.3,0)
@@ -48,6 +54,19 @@ function Lib:Window(Name)
     WindowMinimize.Size = UDim2.new(0,20,1,0)
     WindowMinimize.Image = "rbxassetid://104192469031504"
     WindowMinimize.BackgroundTransparency = 1
+
+    PlayerInfo.Position = UDim2.new(0.05,0,0,40)
+    PlayerInfo.Size = UDim2.new(0.5,0,0.13,0)
+    PlayerInfoUIGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(45,45,45)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(35,35,35)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(45,45,45))
+    }
+    PlayerInfoUICorner.CornerRadius = UDim.new(0,10)
+    PlayerIcon.Position = UDim2.new(0.05,0,0,0)
+    PlayerIcon.Size = UDim2.new(0.305,0,1,0)
+    PlayerIconUICorner.CornerRadius = UDim.new(1,0)
+    PlayerIcon.Image = game.Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size352x352)
 
     WindowMinimize.MouseButton1Click:Connect(function()
         local SizeUS,SizeNotUS = {Size = UDim2.new(0,450,0,550)},{Size = UDim2.new(0,450,0,50)}
