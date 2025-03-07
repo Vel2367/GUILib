@@ -32,6 +32,7 @@ function Lib:Window(Name)
     local PlayerInfoUIGradient = Instance.new("UIGradient", PlayerInfo)
     local PlayerIcon = Instance.new("ImageLabel",PlayerInfo)
     local PlayerIconUICorner = Instance.new("UICorner", PlayerIcon)
+    local PlayerName = Instance.new("TextLabel", PlayerInfo)
 
     Main.Size = UDim2.new(0,450,0,550)
     Main.Position = UDim2.new(0.5,0,0.3,0)
@@ -65,8 +66,16 @@ function Lib:Window(Name)
     PlayerInfoUICorner.CornerRadius = UDim.new(0,10)
     PlayerIcon.Position = UDim2.new(0.05,0,0,0)
     PlayerIcon.Size = UDim2.new(0.305,0,1,0)
+    PlayerIcon.BackgroundColor3 = Color3.fromRGB(255,255,255)
     PlayerIconUICorner.CornerRadius = UDim.new(1,0)
     PlayerIcon.Image = game.Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size352x352)
+    PlayerName.Position = UDim2.new(0.4,0,0.1,0)
+    PlayerName.Size = UDim2.new(0.5,0,0.4,0)
+    PlayerName.BackgroundTransparency = 1
+    PlayerName.TextSize = 12
+    PlayerName.TextColor3 = Color3.fromRGB(255,255,255)
+    PlayerName.TextXAlignment = "Left" 
+    PlayerName.Text = "@"..Player.Name
 
     WindowMinimize.MouseButton1Click:Connect(function()
         local SizeUS,SizeNotUS = {Size = UDim2.new(0,450,0,550)},{Size = UDim2.new(0,450,0,50)}
