@@ -22,7 +22,9 @@ function Lib:Window(Name)
     local MainUICorner = Instance.new("UICorner", Main)
     local MainUIGradient = Instance.new("UIGradient", Main)
     local MainUIStroke = Instance.new("UIStroke", Main)
-    local MainSeparator1 = Instance.new("Frame", Main)
+    local MainCanvasGroup = Instance.new("CanvasGroup", Main)
+    local MainSeparator1 = Instance.new("Frame", MainCanvasGroup)
+    local MainSeparator1UIGradient = Instance.new("UIGradient",MainSeparator1)
 
     local WindowPonel = Instance.new("Frame", Main)
     local WindowMinimize = Instance.new("ImageButton", WindowPonel)
@@ -76,6 +78,19 @@ function Lib:Window(Name)
     PlayerName.TextColor3 = Color3.fromRGB(255,255,255)
     PlayerName.TextXAlignment = "Left" 
     PlayerName.Text = "@"..Player.Name
+
+    MainCanvasGroup.Position = UDim2.new(0,0,0,0)
+    MainCanvasGroup.Size = UDim2.new(1,0,1,0)
+    MainCanvasGroup.BackgroundTransparency = 1
+    MainSeparator1.Position = UDim2.new(0.05,0,0.22,0)
+    MainSeparator1.Size = UDim2.new(0.9,0,0,3)
+    MainSeparator1.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    MainSeparator1UIGradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.2, 0),
+        NumberSequenceKeypoint.new(0.8, 0),
+        NumberSequenceKeypoint.new(1, 1),
+    }
 
     WindowMinimize.MouseButton1Click:Connect(function()
         local SizeUS,SizeNotUS = {Size = UDim2.new(0,450,0,550)},{Size = UDim2.new(0,450,0,50)}
