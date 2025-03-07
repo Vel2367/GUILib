@@ -46,8 +46,12 @@ function Lib:Window(Name)
     WindowMinimize.Active = true
     WindowMinimize.Position = UDim2.new(0.95,0,0,0)
     WindowMinimize.Size = UDim2.new(0,20,1,0)
-    WindowMinimize.Image = "rbxassetid://102462457804057"
+    WindowMinimize.Image = "rbxassetid://104192469031504"
     WindowMinimize.BackgroundTransparency = 1
+
+    WindowMinimize.MouseButton1Click:Connect(
+        print("Click")
+    )
 
     function Drag(Frame)
         local dragging = false
