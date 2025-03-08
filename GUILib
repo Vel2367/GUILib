@@ -276,6 +276,9 @@ function Lib:Window(Name)
         local location = options.location or self.flags
         local flag = options.flag or ""
         callback = callback or function() end
+            
+        local SectionFrame = SectionFinder:FindFirstChild(section)
+        if not SectionFrame then return end
 
         if default == false then
             location[flag] = false
@@ -284,7 +287,7 @@ function Lib:Window(Name)
             task.spawn(callback)
         end
 
-        local Toggle = Instance.new("Frame")
+        local Toggle = Instance.new("Frame",SectionFrame)
         local UICorner = Instance.new("UICorner", Toggle)
         local TextLabel = Instance.new("TextLabel", Toggle)
         local Switch = Instance.new("Frame", Toggle)
@@ -293,7 +296,6 @@ function Lib:Window(Name)
         local KnobCorner = Instance.new("UICorner", Knob)
 
         Toggle.Name = "Toggle"
-        Toggle.Parent = section
         Toggle.BackgroundColor3 = Color3.fromRGB(25, 27, 33)
         Toggle.Size = UDim2.new(1, 0, 0, 40)
 
