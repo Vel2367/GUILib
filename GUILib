@@ -116,16 +116,20 @@ function Lib:Window(Name)
 
 
     WindowMinimize.MouseButton1Click:Connect(function()
-        local SizeUS,SizeNotUS = {Size = UDim2.new(0,400,0,500)},{Size = UDim2.new(0,450,0,50)}
-        local PlayerUS,PlayerNotUS= {Position = UDim2.new(0.05,0,0,40), Size = UDim2.new(0.5,0,0.12,0)},{Position = UDim2.new(0.05,0,0,5),Size = UDim2.new(0.5,0,0,40)}
-        local HubUS,HubNotUS = {Visible = true},{Visible = false}
-        local crumpling = TweenInfo.new(0.5,Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        TweenService:Create(MainSeparator1, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
-        TweenService:Create(SectionDepartment, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
-        TweenService:Create(SectionFinder, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
+        local isMinimized = Main.Size.Y.Offset > 50
+        local sizeTarget = isMinimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 400, 0, 500)
+        local playerTarget = isMinimized and {Position = UDim2.new(0.05, 0, 0, 5), Size = UDim2.new(0.5, 0, 0, 40)} 
+                                        or {Position = UDim2.new(0.05, 0, 0, 40), Size = UDim2.new(0.5, 0, 0.12, 0)}
+        local visibilityTarget = not isMinimized
+        local crumpling = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        local elementsToToggle = {MainSeparator1, SectionDepartment, SectionFinder}
+        
+        TweenService:Create(Main, crumpling, {Size = sizeTarget}):Play()
+        for _, element in ipairs(elementsToToggle) do
+            TweenService:Create(element, crumpling, {Visible = visibilityTarget}):Play()
+        end
         wait(0.2)
-        TweenService:Create(Main, crumpling, Main.Size.Y.Offset > 50 and SizeNotUS or SizeUS):Play()
-        TweenService:Create(PlayerInfo, crumpling, Main.Size.Y.Offset > 50 and PlayerNotUS or PlayerUS):Play()
+        TweenService:Create(PlayerInfo, crumpling, playerTarget):Play()
     end)
 
     local function Drag(Frame)
