@@ -19,16 +19,20 @@ function Lib:Window(Name)
     local Window = {}
 
     local Main = Instance.new("Frame", ScriptGui)
+    Main.Name = "Main"
     local MainUICorner = Instance.new("UICorner", Main)
     local MainUIGradient = Instance.new("UIGradient", Main)
     local MainUIStroke = Instance.new("UIStroke", Main)
     local MainSeparator1 = Instance.new("Frame", Main)
+    MainSeparator1.Name = "Seporator1"
     local MainSeparator1UIGradient = Instance.new("UIGradient",MainSeparator1)
 
     local WindowPonel = Instance.new("Frame", Main)
+    WindowPonel.Name = "Window"
     local WindowMinimize = Instance.new("ImageButton", WindowPonel)
     
     local PlayerInfo = Instance.new("Frame", Main)
+    PlayerInfo.Name = "PlayerInfo"
     local PlayerInfoUICorner = Instance.new("UICorner", PlayerInfo)
     local PlayerInfoUIGradient = Instance.new("UIGradient", PlayerInfo)
     local PlayerIcon = Instance.new("ImageLabel",PlayerInfo)
@@ -36,6 +40,7 @@ function Lib:Window(Name)
     local PlayerName = Instance.new("TextLabel", PlayerInfo)
 
     local SectionDepartment = Instance.new("ScrollingFrame", Main)
+    SectionDepartment.Name = "Sections"
     local SectionDepartmentUIListLayout = Instance.new("UIListLayout", SectionDepartment)
 
 
@@ -100,14 +105,16 @@ function Lib:Window(Name)
     SectionDepartment.ScrollingDirection = Enum.ScrollingDirection.X
     SectionDepartmentUIListLayout.FillDirection = Enum.FillDirection.Horizontal
     SectionDepartmentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SectionDepartmentUIListLayout.Padding = UDim.new(0,5)
 
 
     WindowMinimize.MouseButton1Click:Connect(function()
         local SizeUS,SizeNotUS = {Size = UDim2.new(0,400,0,500)},{Size = UDim2.new(0,450,0,50)}
-        local PlayerUS,PlayerNotUS= {Position = UDim2.new(0.05,0,0,40), Size = UDim2.new(0.5,0,0.13,0)},{Position = UDim2.new(0.05,0,0,5),Size = UDim2.new(0.5,0,0,40)}
-        local SeparatorsUS,SeparatorsNotUS = {Visible = true},{Visible = false}
+        local PlayerUS,PlayerNotUS= {Position = UDim2.new(0.05,0,0,40), Size = UDim2.new(0.5,0,0.12,0)},{Position = UDim2.new(0.05,0,0,5),Size = UDim2.new(0.5,0,0,40)}
+        local HubUS,HubNotUS = {Visible = true},{Visible = false}
         local crumpling = TweenInfo.new(0.5,Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        TweenService:Create(MainSeparator1, crumpling, Main.Size.Y.Offset > 50 and SeparatorsNotUS or SeparatorsUS):Play()
+        TweenService:Create(MainSeparator1, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
+        TweenService:Create(SectionDepartment, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
         wait(0.1)
         TweenService:Create(Main, crumpling, Main.Size.Y.Offset > 50 and SizeNotUS or SizeUS):Play()
         TweenService:Create(PlayerInfo, crumpling, Main.Size.Y.Offset > 50 and PlayerNotUS or PlayerUS):Play()
