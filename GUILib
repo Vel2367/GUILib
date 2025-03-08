@@ -1,51 +1,273 @@
-function Window:Button(section, name, options, callback)
-    options = options or {}
-    callback = callback or function() end
-    local flag, location, default = options.flag, options.location, options.default or false
+local Lib = {}
 
-    local SectionFrame = SectionFinder:FindFirstChild(section)
-    if not SectionFrame then return end
-
-    local Button = Instance.new("Frame", SectionFrame)
-    local UICorner = Instance.new("UICorner", Button)
-    local Text = Instance.new("TextLabel", Button)
-    local Toggle = Instance.new("Frame", Button)
-    local ToggleCorner = Instance.new("UICorner", Toggle)
-
-    Button.Name = "Button"
-    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-    Button.Size = UDim2.new(1, 0, 0, 30)
-
-    UICorner.CornerRadius = UDim.new(0, 6)
-
-    Text.Name = "Text"
-    Text.BackgroundTransparency = 1
-    Text.Position = UDim2.new(0, 10, 0, 0)
-    Text.Size = UDim2.new(1, -40, 1, 0)
-    Text.Font = Enum.Font.GothamBold
-    Text.Text = name
-    Text.TextSize = 14
-    Text.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Text.TextXAlignment = Enum.TextXAlignment.Left
-
-    Toggle.Name = "Toggle"
-    Toggle.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    Toggle.Size = UDim2.new(0, 25, 0, 25)
-    Toggle.Position = UDim2.new(1, -35, 0.5, -12)
-
-    ToggleCorner.CornerRadius = UDim.new(1, 0)
-
-    if location and flag then
-        location[flag] = Button
-    end
-
-    if default then
-        Text.TextColor3 = default
-    end
-
-    Button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            task.spawn(callback)
-        end
-    end)
+if game.CoreGui:FindFirstChild("ScriptGui") then
+    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
 end
+if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
+
+local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
+ScriptGui.Name = "ScriptGui"
+
+
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local visible, Usable = true, true
+local Player = game.Players.LocalPlayer
+
+
+function Lib:Window(Name)
+    local Window = {}
+
+    local Main = Instance.new("Frame", ScriptGui)
+    Main.Name = "Main"
+    local MainUICorner = Instance.new("UICorner", Main)
+    local MainUIGradient = Instance.new("UIGradient", Main)
+    local MainUIStroke = Instance.new("UIStroke", Main)
+    local MainSeparator1 = Instance.new("Frame", Main)
+    MainSeparator1.Name = "Seporator1"
+    local MainSeparator1UIGradient = Instance.new("UIGradient",MainSeparator1)
+
+    local WindowPonel = Instance.new("Frame", Main)
+    WindowPonel.Name = "Window"
+    local WindowMinimize = Instance.new("ImageButton", WindowPonel)
+    
+    local PlayerInfo = Instance.new("Frame", Main)
+    PlayerInfo.Name = "PlayerInfo"
+    local PlayerInfoUICorner = Instance.new("UICorner", PlayerInfo)
+    local PlayerInfoUIGradient = Instance.new("UIGradient", PlayerInfo)
+    local PlayerIcon = Instance.new("ImageLabel",PlayerInfo)
+    local PlayerIconUICorner = Instance.new("UICorner", PlayerIcon)
+    local PlayerName = Instance.new("TextLabel", PlayerInfo)
+
+    local SectionDepartment = Instance.new("ScrollingFrame", Main)
+    SectionDepartment.Name = "SectionsButton"
+    local SectionDepartmentUIListLayout = Instance.new("UIListLayout", SectionDepartment)
+
+    local SectionFinder = Instance.new("Frame", Main)
+    SectionFinder.Name = "Sections"
+
+
+    Main.Size = UDim2.new(0,400,0,500)
+    Main.Position = UDim2.new(0.5,0,0.3,0)
+    Main.Active = true
+    Main.BackgroundTransparency = 0.1
+    MainUICorner.CornerRadius = UDim.new(0,20)
+    MainUIGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25,25,25)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(35,35,35)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25,25,25))
+    }
+    MainUIStroke.Thickness = 5
+    MainUIStroke.Color = Color3.fromRGB(35,35,35)
+    MainUIStroke.Transparency = 0.01
+
+    WindowPonel.Position = UDim2.new(0.05,0,0.015,0)
+    WindowPonel.Size = UDim2.new(0.9,0,0,15)
+    WindowPonel.BackgroundTransparency = 1
+    WindowMinimize.Active = true
+    WindowMinimize.Position = UDim2.new(0.95,0,0,0)
+    WindowMinimize.Size = UDim2.new(0,20,1,0)
+    WindowMinimize.Image = "rbxassetid://104192469031504"
+    WindowMinimize.BackgroundTransparency = 1
+
+    PlayerInfo.Position = UDim2.new(0.05,0,0,40)
+    PlayerInfo.Size = UDim2.new(0.5,0,0.12,0)
+    PlayerInfoUIGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(45,45,45)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(35,35,35)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(45,45,45))
+    }
+    PlayerInfoUICorner.CornerRadius = UDim.new(0,10)
+    PlayerIcon.Position = UDim2.new(0.05,0,0,0)
+    PlayerIcon.Size = UDim2.new(0.305,0,1,0)
+    PlayerIcon.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    PlayerIconUICorner.CornerRadius = UDim.new(1,0)
+    PlayerIcon.Image = game.Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size352x352)
+    PlayerName.Position = UDim2.new(0.4,0,0.1,0)
+    PlayerName.Size = UDim2.new(0.5,0,0.4,0)
+    PlayerName.BackgroundTransparency = 1
+    PlayerName.TextSize = 14
+    PlayerName.TextColor3 = Color3.fromRGB(255,255,255)
+    PlayerName.TextXAlignment = "Left" 
+    PlayerName.Text = "@"..Player.Name
+
+    MainSeparator1.Position = UDim2.new(0.05,0,0.22,0)
+    MainSeparator1.Size = UDim2.new(0.9,0,0,3)
+    MainSeparator1.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    MainSeparator1UIGradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.2, 0),
+        NumberSequenceKeypoint.new(0.8, 0),
+        NumberSequenceKeypoint.new(1, 1),
+    }
+
+    SectionDepartment.Position = UDim2.new(0.05,0,0.25,0)
+    SectionDepartment.Size = UDim2.new(0.9,0,0.07,0)
+    SectionDepartment.AutomaticCanvasSize = Enum.AutomaticSize.X
+    SectionDepartment.Transparency = 1
+    SectionDepartment.ScrollBarThickness = 0
+    SectionDepartment.ScrollingDirection = Enum.ScrollingDirection.X
+    SectionDepartmentUIListLayout.FillDirection = Enum.FillDirection.Horizontal
+    SectionDepartmentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SectionDepartmentUIListLayout.Padding = UDim.new(0,5)
+
+    SectionFinder.Position = UDim2.new(0.05,0,0.35,0)
+    SectionFinder.Size = UDim2.new(0.9,0,0.6,0)
+    SectionFinder.Transparency = 1
+
+
+    WindowMinimize.MouseButton1Click:Connect(function()
+        local isMinimized = Main.Size.Y.Offset > 50
+        local sizeTarget = isMinimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 400, 0, 500)
+        local playerTarget = isMinimized and {Position = UDim2.new(0.05, 0, 0, 5), Size = UDim2.new(0.5, 0, 0, 40)} 
+                                        or {Position = UDim2.new(0.05, 0, 0, 40), Size = UDim2.new(0.5, 0, 0.12, 0)}
+        local visibilityTarget = not isMinimized
+        local crumpling = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        local elementsToToggle = {MainSeparator1, SectionDepartment, SectionFinder}
+
+        TweenService:Create(Main, crumpling, {Size = sizeTarget}):Play()
+        for _, element in ipairs(elementsToToggle) do
+            TweenService:Create(element, crumpling, {Visible = visibilityTarget}):Play()
+        end
+        wait(0.2)
+        TweenService:Create(PlayerInfo, crumpling, playerTarget):Play()
+    end)
+
+    local function Drag(Frame)
+        local dragging = false
+        local startPos, startMousePos 
+
+        Frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                startMousePos, startPos = input.Position, Frame.Position
+            end
+        end)
+
+        Frame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+
+        UIS.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - startMousePos
+                Frame.Position = UDim2.new(
+                    startPos.X.Scale, startPos.X.Offset + delta.X,
+                    startPos.Y.Scale, startPos.Y.Offset + delta.Y
+                )
+            end
+        end)
+    end
+    Drag(Main)
+
+    function Window:Section(Name)
+        local Section = Instance.new("TextButton", SectionDepartment)
+        Section.Name = Name or "Section"
+        local SectionUICorner = Instance.new("UICorner", Section)
+        local SectionUIGradient = Instance.new("UIGradient", Section)
+        local SectionField = Instance.new("ScrollingFrame", SectionFinder)
+        local SectionFieldUIListLayout = Instance.new("UIListLayout", SectionField)
+
+
+        SectionField.Name = Name or "Section"
+        Section.Size = UDim2.new(0,100,0,35)
+        SectionUICorner.CornerRadius = UDim.new(1,0)
+        SectionUIGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(70,70,70)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(40,40,40))
+        }
+        Section.Text = Name or "Section"
+        Section.TextSize = 15
+        Section.TextColor3 = Color3.fromRGB(255,255,255)
+
+        SectionField.Size = UDim2.new(1,0,1,0)
+        SectionField.BackgroundColor3 = Color3.fromRGB(35,35,35)
+        SectionField.BorderSizePixel = 0
+        SectionField.Visible = false
+        SectionField.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        SectionField.Transparency = 1
+        SectionField.ScrollBarThickness = 0
+        SectionField.ScrollingDirection = Enum.ScrollingDirection.Y
+        SectionFieldUIListLayout.Padding = UDim.new(0,5)
+
+        local function updateScrolling()
+            SectionField.ScrollingEnabled = SectionFieldUIListLayout.AbsoluteContentSize.Y > SectionField.AbsoluteSize.Y
+        end
+        SectionFieldUIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrolling)
+        updateScrolling()
+
+        local function hideAllSections()
+            for _, child in ipairs(SectionFinder:GetChildren()) do
+                if child:IsA("ScrollingFrame") and child ~= SectionField then
+                    TweenService:Create(child, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
+                    wait(0.1)
+                    child.Visible = false
+                end
+            end
+        end
+
+        Section.MouseButton1Click:Connect(function()
+            hideAllSections()
+            SectionField.Visible = true
+            TweenService:Create(SectionField, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 0}):Play()
+        end)
+    end
+
+    function Window:Button(section, name, options, callback)
+        options = options or {}
+        callback = callback or function() end
+        local flag, location, default = options.flag, options.location, options.default or false
+
+        local SectionFrame = SectionFinder:FindFirstChild(section)
+        if not SectionFrame then return end
+
+        local Button = Instance.new("Frame", SectionFrame)
+        local UICorner = Instance.new("UICorner", Button)
+        local Text = Instance.new("TextLabel", Button)
+        local Toggle = Instance.new("Frame", Button)
+        local ToggleCorner = Instance.new("UICorner", Toggle)
+
+        Button.Name = "Button"
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+        Button.Size = UDim2.new(1, 0, 0, 30)
+
+        UICorner.CornerRadius = UDim.new(0, 6)
+
+        Text.Name = "Text"
+        Text.BackgroundTransparency = 1
+        Text.Position = UDim2.new(0, 10, 0, 0)
+        Text.Size = UDim2.new(1, -40, 1, 0)
+        Text.Font = Enum.Font.GothamBold
+        Text.Text = name
+        Text.TextSize = 14
+        Text.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Text.TextXAlignment = Enum.TextXAlignment.Left
+
+        Toggle.Name = "Toggle"
+        Toggle.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+        Toggle.Size = UDim2.new(0, 25, 0, 25)
+        Toggle.Position = UDim2.new(1, -35, 0.5, -12)
+
+        ToggleCorner.CornerRadius = UDim.new(1, 0)
+
+        if location and flag then
+            location[flag] = Button
+        end
+
+        if default then
+            Text.TextColor3 = default
+        end
+
+        Button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                task.spawn(callback)
+            end
+        end)
+    end
+
+    return Window
+end
+
+return Lib
