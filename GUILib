@@ -192,6 +192,11 @@ function Lib:Window(Name)
         SectionField.ScrollingDirection = Enum.ScrollingDirection.Y
         SectionFieldUIListLayout.Padding = UDim.new(0,5)
 
+        local function updateScrolling()
+            SectionField.ScrollingEnabled = SectionFieldUIListLayout.AbsoluteContentSize.Y > SectionField.AbsoluteSize.Y
+        end
+        SectionFieldUIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrolling)
+        updateScrolling()
 
         local function hideAllSections()
             for _, child in ipairs(SectionFinder:GetChildren()) do
