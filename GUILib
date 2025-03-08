@@ -22,8 +22,7 @@ function Lib:Window(Name)
     local MainUICorner = Instance.new("UICorner", Main)
     local MainUIGradient = Instance.new("UIGradient", Main)
     local MainUIStroke = Instance.new("UIStroke", Main)
-    local MainCanvasGroup = Instance.new("CanvasGroup", Main)
-    local MainSeparator1 = Instance.new("Frame", MainCanvasGroup)
+    local MainSeparator1 = Instance.new("Frame", Main)
     local MainSeparator1UIGradient = Instance.new("UIGradient",MainSeparator1)
 
     local WindowPonel = Instance.new("Frame", Main)
@@ -79,10 +78,6 @@ function Lib:Window(Name)
     PlayerName.TextXAlignment = "Left" 
     PlayerName.Text = "@"..Player.Name
 
-    MainCanvasGroup.Position = UDim2.new(0,0,0,0)
-    MainCanvasGroup.Size = UDim2.new(1,0,1,0)
-    MainCanvasGroup.BackgroundTransparency = 1
-    MainCanvasGroup.GroupTransparency = 0
     MainSeparator1.Position = UDim2.new(0.05,0,0.22,0)
     MainSeparator1.Size = UDim2.new(0.9,0,0,3)
     MainSeparator1.BackgroundColor3 = Color3.fromRGB(255,255,255)
@@ -96,12 +91,12 @@ function Lib:Window(Name)
     WindowMinimize.MouseButton1Click:Connect(function()
         local SizeUS,SizeNotUS = {Size = UDim2.new(0,450,0,550)},{Size = UDim2.new(0,450,0,50)}
         local PlayerUS,PlayerNotUS= {Position = UDim2.new(0.05,0,0,40), Size = UDim2.new(0.5,0,0.13,0)},{Position = UDim2.new(0.05,0,0,5),Size = UDim2.new(0.5,0,0,40)}
-        local CanvoUS,CanvoNotUS = {GroupTransparency = 0},{GroupTransparency = 1}
+        local SeparatorsUS,SeparatorsNotUS = {Visible = true},{Visible = false}
         local crumpling = TweenInfo.new(0.5,Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
         TweenService:Create(PlayerInfo, crumpling, Main.Size.Y.Offset > 50 and PlayerNotUS or PlayerUS):Play()
         wait(0.1)
         TweenService:Create(Main, crumpling, Main.Size.Y.Offset > 50 and SizeNotUS or SizeUS):Play()
-        TweenService:Create(MainCanvasGroup, crumpling, Main.Size.Y.Offset > 50 and CanvoNotUS or CanvoUS):Play()
+        TweenService:Create(MainSeparator1, crumpling, Main.Size.Y.Offset > 50 and SeparatorsNotUS or SeparatorsUS):Play()
     end)
 
     function Drag(Frame)
