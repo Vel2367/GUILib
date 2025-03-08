@@ -122,7 +122,8 @@ function Lib:Window(Name)
         local crumpling = TweenInfo.new(0.5,Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
         TweenService:Create(MainSeparator1, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
         TweenService:Create(SectionDepartment, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
-        wait(0.1)
+        TweenService:Create(SectionFinder, crumpling, Main.Size.Y.Offset > 50 and HubNotUS or HubUS):Play()
+        wait(0.2)
         TweenService:Create(Main, crumpling, Main.Size.Y.Offset > 50 and SizeNotUS or SizeUS):Play()
         TweenService:Create(PlayerInfo, crumpling, Main.Size.Y.Offset > 50 and PlayerNotUS or PlayerUS):Play()
     end)
@@ -183,7 +184,7 @@ function Lib:Window(Name)
             for _, child in ipairs(SectionFinder:GetChildren()) do
                 if child:IsA("Frame") and child ~= SectionField then
                         TweenService:Create(child, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
-                        wait(0.3)
+                        wait(0.2)
                         child.Visible = false
                 end
             end
