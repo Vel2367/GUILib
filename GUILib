@@ -40,8 +40,11 @@ function Lib:Window(Name)
     local PlayerName = Instance.new("TextLabel", PlayerInfo)
 
     local SectionDepartment = Instance.new("ScrollingFrame", Main)
-    SectionDepartment.Name = "Sections"
+    SectionDepartment.Name = "SectionsButton"
     local SectionDepartmentUIListLayout = Instance.new("UIListLayout", SectionDepartment)
+
+    local SectionFinder = Instance.new("Frame", Main)
+    SectionFinder.Name = "Sections"
 
 
     Main.Size = UDim2.new(0,400,0,500)
@@ -107,6 +110,10 @@ function Lib:Window(Name)
     SectionDepartmentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     SectionDepartmentUIListLayout.Padding = UDim.new(0,5)
 
+    SectionFinder.Position = UDim2.new(0.05,0,0.35,0)
+    SectionFinder.Size = UDim2.new(0.9,0,0.6,0)
+    SectionFinder.Transparency = 1
+
 
     WindowMinimize.MouseButton1Click:Connect(function()
         local SizeUS,SizeNotUS = {Size = UDim2.new(0,400,0,500)},{Size = UDim2.new(0,450,0,50)}
@@ -151,9 +158,11 @@ function Lib:Window(Name)
 
     function Window:Section(Name)
         local Section = Instance.new("TextButton", SectionDepartment)
+        Section.Name = Name or "Section"
         local SectionUICorner = Instance.new("UICorner", Section)
         local SectionUIGradient = Instance.new("UIGradient", Section)
-
+        local SectionField = Instance.new("Frame", SectionFinder)
+        SectionField.Name = Name or "Section"
         Section.Size = UDim2.new(0,100,0,30)
         SectionUICorner.CornerRadius = UDim.new(1,0)
         SectionUIGradient.Color = ColorSequence.new{
@@ -163,6 +172,8 @@ function Lib:Window(Name)
         Section.Text = Name or "Section"
         Section.TextSize = 15
         Section.TextColor3 = Color3.fromRGB(255,255,255)
+
+        SectionField.Size = UDim2.new(1,0,1,0)
     end
 
 
