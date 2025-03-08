@@ -202,7 +202,7 @@ function Lib:Window(Name)
             for _, child in ipairs(SectionFinder:GetChildren()) do
                 if child:IsA("ScrollingFrame") and child ~= SectionField then
                     TweenService:Create(child, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
-                    wait(0.2)
+                    wait(0.1)
                     child.Visible = false
                 end
             end
