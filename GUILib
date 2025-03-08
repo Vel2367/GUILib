@@ -99,7 +99,7 @@ function Lib:Window(Name)
         TweenService:Create(PlayerInfo, crumpling, Main.Size.Y.Offset > 50 and PlayerNotUS or PlayerUS):Play()
     end)
 
-    function Drag(Frame)
+    local function Drag(Frame)
         local dragging = false
         local startPos, startMousePos
 
