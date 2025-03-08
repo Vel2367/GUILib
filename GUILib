@@ -183,20 +183,22 @@ function Lib:Window(Name)
         Section.TextColor3 = Color3.fromRGB(255,255,255)
 
         SectionField.Size = UDim2.new(1,0,1,0)
+        SectionField.BackgroundColor3 = Color3.fromRGB(35,35,35)
+        SectionField.BorderSizePixel = 0
         SectionField.Visible = false
         SectionField.AutomaticCanvasSize = Enum.AutomaticSize.Y
         SectionField.Transparency = 1
         SectionField.ScrollBarThickness = 0
         SectionField.ScrollingDirection = Enum.ScrollingDirection.Y
         SectionFieldUIListLayout.Padding = UDim.new(0,5)
-        
+
 
         local function hideAllSections()
             for _, child in ipairs(SectionFinder:GetChildren()) do
-                if child:IsA("Frame") and child ~= SectionField then
-                        TweenService:Create(child, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
-                        wait(0.2)
-                        child.Visible = false
+                if child:IsA("ScrollingFrame") and child ~= SectionField then
+                    TweenService:Create(child, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
+                    wait(0.2)
+                    child.Visible = false
                 end
             end
         end
