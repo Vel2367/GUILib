@@ -215,10 +215,13 @@ function Lib:Window(Name)
         end)
     end
 
-    function Window:Button(section, name, options, callback)
+    function Window:Button(name, options, callback)
         options = options or {}
         callback = callback or function() end
-        local flag, location, default = options.flag, options.location, options.default or false
+        local section = options.section
+        local flag = options.flag
+        local location = options.location
+        local default = options.default or false
 
         local SectionFrame = SectionFinder:FindFirstChild(section)
         if not SectionFrame then return end
@@ -231,7 +234,7 @@ function Lib:Window(Name)
 
         Button.Name = "Button"
         Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-        Button.Size = UDim2.new(1, 0, 0, 30)
+        Button.Size = UDim2.new(1, 0, 0, 40)
 
         UICorner.CornerRadius = UDim.new(0, 6)
 
@@ -266,7 +269,6 @@ function Lib:Window(Name)
             end
         end)
     end
-
     return Window
 end
 
