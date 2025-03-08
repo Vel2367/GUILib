@@ -167,7 +167,7 @@ function Lib:Window(Name)
         Section.Name = Name or "Section"
         local SectionUICorner = Instance.new("UICorner", Section)
         local SectionUIGradient = Instance.new("UIGradient", Section)
-        local SectionField = Instance.new("Frame", SectionFinder)
+        local SectionField = Instance.new("ScrollingFrame", SectionFinder)
         local SectionFieldUICorner = Instance.new("UICorner", SectionField)
         local SectionFieldUIGradient = Instance.new("UIGradient", SectionField)
 
