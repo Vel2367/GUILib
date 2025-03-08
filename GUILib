@@ -149,6 +149,15 @@ function Lib:Window(Name)
     end
     Drag(Main)
 
+    function Window:Section(Name)
+        local Section = Instance.new("Frame", SectionDepartment)
+        local SectionUICorner = Instance.new("UICorner", Section)
+        Section.Size = UDim2.new(0,90,0,30)
+        SectionUICorner.CornerRadius = UDim.new(1,0)
+
+
+
+    end
 
 
     return Window
