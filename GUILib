@@ -162,8 +162,10 @@ function Lib:Window(Name)
         local SectionUICorner = Instance.new("UICorner", Section)
         local SectionUIGradient = Instance.new("UIGradient", Section)
         local SectionField = Instance.new("Frame", SectionFinder)
+
+
         SectionField.Name = Name or "Section"
-        Section.Size = UDim2.new(0,100,0,30)
+        Section.Size = UDim2.new(0,100,0,35)
         SectionUICorner.CornerRadius = UDim.new(1,0)
         SectionUIGradient.Color = ColorSequence.new{
             ColorSequenceKeypoint.new(0, Color3.fromRGB(70,70,70)),
@@ -174,8 +176,23 @@ function Lib:Window(Name)
         Section.TextColor3 = Color3.fromRGB(255,255,255)
 
         SectionField.Size = UDim2.new(1,0,1,0)
-    end
+        SectionField.Visible = false
+        SectionField.Transparency = 1
 
+        local function hideAllSections()
+            for _, child in ipairs(SectionFinder:GetChildren()) do
+                if child:IsA("Frame") and child ~= SectionField then
+                        child.Visible = false
+                end
+            end
+        end
+
+        Section.MouseButton1Click:Connect(function()
+            hideAllSections()
+            wait(0.3)
+            SectionField.Visible = true
+        end)
+    end
 
     return Window
 end
