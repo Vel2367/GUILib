@@ -50,6 +50,7 @@ function Lib:Window(Name)
     Main.Size = UDim2.new(0,400,0,500)
     Main.Position = UDim2.new(0.5,0,0.3,0)
     Main.Active = true
+    Main.BackgroundTransparency = 0.1
     MainUICorner.CornerRadius = UDim.new(0,20)
     MainUIGradient.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(25,25,25)),
@@ -191,9 +192,9 @@ function Lib:Window(Name)
             ColorSequenceKeypoint.new(1, Color3.fromRGB(55,55,55))
         }   
         SectionFieldUIGradient.Transparency = NumberSequence.new{
-            NumberSequenceKeypoint.new(0, 2),
-            NumberSequenceKeypoint.new(0.5, 0.5),
-            NumberSequenceKeypoint.new(1, 2)
+            NumberSequenceKeypoint.new(0, 0.5),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 0.5)
         }
 
         local function hideAllSections()
@@ -209,9 +210,13 @@ function Lib:Window(Name)
         Section.MouseButton1Click:Connect(function()
             hideAllSections()
             SectionField.Visible = true
-            TweenService:Create(SectionField, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.8}):Play()
+            TweenService:Create(SectionField, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 0}):Play()
         end)
     end
+
+
+
+
 
     return Window
 end
