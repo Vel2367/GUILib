@@ -123,7 +123,7 @@ function Lib:Window(Name)
         local visibilityTarget = not isMinimized
         local crumpling = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
         local elementsToToggle = {MainSeparator1, SectionDepartment, SectionFinder}
-        
+
         TweenService:Create(Main, crumpling, {Size = sizeTarget}):Play()
         for _, element in ipairs(elementsToToggle) do
             TweenService:Create(element, crumpling, {Visible = visibilityTarget}):Play()
@@ -134,7 +134,7 @@ function Lib:Window(Name)
 
     local function Drag(Frame)
         local dragging = false
-        local startPos, startMousePos
+        local startPos, startMousePos 
 
         Frame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -167,6 +167,8 @@ function Lib:Window(Name)
         local SectionUICorner = Instance.new("UICorner", Section)
         local SectionUIGradient = Instance.new("UIGradient", Section)
         local SectionField = Instance.new("Frame", SectionFinder)
+        local SectionFieldUICorner = Instance.new("UICorner", SectionField)
+        local SectionFieldUIGradient = Instance.new("UIGradient", SectionField)
 
 
         SectionField.Name = Name or "Section"
@@ -183,6 +185,16 @@ function Lib:Window(Name)
         SectionField.Size = UDim2.new(1,0,1,0)
         SectionField.Visible = false
         SectionField.Transparency = 1
+        SectionFieldUIGradient.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(55,55,55)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40,40,40)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(55,55,55))
+        }   
+        SectionFieldUIGradient.Transparency = NumberSequence.new{
+            NumberSequenceKeypoint.new(0, 2),
+            NumberSequenceKeypoint.new(0.5, 0.5),
+            NumberSequenceKeypoint.new(1, 2)
+        }
 
         local function hideAllSections()
             for _, child in ipairs(SectionFinder:GetChildren()) do
@@ -197,7 +209,7 @@ function Lib:Window(Name)
         Section.MouseButton1Click:Connect(function()
             hideAllSections()
             SectionField.Visible = true
-            TweenService:Create(SectionField, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 0}):Play()
+            TweenService:Create(SectionField, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.8}):Play()
         end)
     end
 
