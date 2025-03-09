@@ -344,6 +344,24 @@ function Lib:Window(Name)
         end
     end
 
+    function Window:TextButton(name, options, callback)
+        local section = options.section
+        local default = options.default or nil
+        local location = options.location or self.flags
+        local flag = options.flag
+        if not flag or flag == "" then
+            return
+        end
+        callback = callback or function() end
+
+        local SectionFrame = SectionFinder:FindFirstChild(section)
+        if not SectionFrame then return end
+
+        location[flag] = default
+
+    end
+
+
     return Window
 end
 
