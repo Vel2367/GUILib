@@ -109,7 +109,7 @@ function Lib:Window(Name)
     SectionDepartment.ScrollingDirection = Enum.ScrollingDirection.X
     SectionDepartmentUIListLayout.FillDirection = Enum.FillDirection.Horizontal
     SectionDepartmentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SectionDepartmentUIListLayout.Padding = UDim.new(0,5)
+    SectionDepartmentUIListLayout.Padding = UDim.new(0,3)
 
     SectionFinder.Position = UDim2.new(0.05,0,0.35,0)
     SectionFinder.Size = UDim2.new(0.9,0,0.6,0)
@@ -294,7 +294,7 @@ function Lib:Window(Name)
         local KnobCorner = Instance.new("UICorner", Knob)
 
         Toggle.Name = "Toggle"
-        Toggle.BackgroundColor3 = Color3.fromRGB(25, 27, 33)
+        Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
         Toggle.Size = UDim2.new(1, 0, 0, 40)
         
         UICorner.CornerRadius = UDim.new(0, 6)
@@ -310,13 +310,13 @@ function Lib:Window(Name)
         TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 
         Switch.Name = "Switch"
-        Switch.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        Switch.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
         Switch.Position = UDim2.new(1, -45, 0.5, -12)
         Switch.Size = UDim2.new(0, 40, 0, 20)
         SwitchCorner.CornerRadius = UDim.new(1, 0)
 
         Knob.Name = "Knob"
-        Knob.BackgroundColor3 = default and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(80, 80, 90)
+        Knob.BackgroundColor3 = default and Color3.new(0.235294, 0.415686, 0.588235) or Color3.fromRGB(90, 90, 100)
         Knob.Position = default and UDim2.new(1, -18, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
         Knob.Size = UDim2.new(0, 18, 0, 18)
         KnobCorner.CornerRadius = UDim.new(1, 0)
@@ -327,7 +327,7 @@ function Lib:Window(Name)
             
             TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Position = isOn and UDim2.new(1, -18, 0.5, -9) or UDim2.new(0, 3, 0.5, -9),
-                BackgroundColor3 = isOn and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(80, 80, 90)
+                BackgroundColor3 = isOn and Color3.new(0.235294, 0.415686, 0.588235) or Color3.fromRGB(90, 90, 100)
             }):Play()
 
             task.spawn(callback, isOn)
