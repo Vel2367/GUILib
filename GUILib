@@ -274,23 +274,21 @@ function Lib:Window(Name)
         local section = options.section
         local default = options.default or false
         local location = options.location or self.flags
-        local flag = options.flag or ""
+        local flag = options.flag
+        if not flag or flag == "" then
+            return
+        end
         callback = callback or function() end
-            
+
         local SectionFrame = SectionFinder:FindFirstChild(section)
         if not SectionFrame then return end
 
-        if default == false then
-            location[flag] = false
-        else
-            location[flag] = default
-            task.spawn(callback)
-        end
+        location[flag] = default
 
-        local Toggle = Instance.new("Frame",SectionFrame)
+        local Toggle = Instance.new("Frame", SectionFrame)
         local UICorner = Instance.new("UICorner", Toggle)
         local TextLabel = Instance.new("TextLabel", Toggle)
-        local Switch = Instance.new("Frame", Toggle)
+        local Switch = Instance.new("Frame" ,Toggle)
         local SwitchCorner = Instance.new("UICorner", Switch)
         local Knob = Instance.new("Frame", Switch)
         local KnobCorner = Instance.new("UICorner", Knob)
@@ -298,9 +296,9 @@ function Lib:Window(Name)
         Toggle.Name = "Toggle"
         Toggle.BackgroundColor3 = Color3.fromRGB(25, 27, 33)
         Toggle.Size = UDim2.new(1, 0, 0, 40)
-
+        
         UICorner.CornerRadius = UDim.new(0, 6)
-
+        
         TextLabel.Name = "Text"
         TextLabel.BackgroundTransparency = 1
         TextLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -326,11 +324,13 @@ function Lib:Window(Name)
         local function ToggleSwitch()
             location[flag] = not location[flag]
             local isOn = location[flag]
+            
             TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Position = isOn and UDim2.new(1, -18, 0.5, -9) or UDim2.new(0, 3, 0.5, -9),
                 BackgroundColor3 = isOn and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(80, 80, 90)
             }):Play()
-            task.spawn(callback)
+
+            task.spawn(callback, isOn)
         end
 
         Switch.InputBegan:Connect(function(input)
@@ -338,6 +338,10 @@ function Lib:Window(Name)
                 ToggleSwitch()
             end
         end)
+
+        if default then
+            task.spawn(callback, true)
+        end
     end
 
     return Window
