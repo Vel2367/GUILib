@@ -367,7 +367,6 @@ function Lib:Window(Name)
         TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
         TextBox.Text = location[flag]
         TextBox.ClearTextOnFocus = true
-        TextBox.AutoButtonColor = false
     
         UICorner.CornerRadius = UDim.new(0, 6)
     
