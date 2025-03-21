@@ -346,7 +346,6 @@ function Lib:Window(Name)
 
     function Window:TextButton(name, options, callback)
         local section = options.section
-        local default = options.default or nil
         local location = options.location or self.flags
         local flag = options.flag
         if not flag or flag == "" then
@@ -357,9 +356,39 @@ function Lib:Window(Name)
         local SectionFrame = SectionFinder:FindFirstChild(section)
         if not SectionFrame then return end
 
-        location[flag] = default
+        location[flag] = false
 
+        local Button = Instance.new("TextButton", SectionFrame)
+        local UICorner = Instance.new("UICorner", Button)
+
+        Button.Name = "TextButton"
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+        Button.Size = UDim2.new(1, 0, 40, 0)
+        Button.Font = Enum.Font.GothamBold
+        Button.Text = name
+        Button.TextSize = 14
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.AutoButtonColor = false
+
+        UICorner.CornerRadius = UDim.new(0, 6)
+
+        local function OnClick()
+            location[flag] = true
+            TweenService:Create(Button, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+            }):Play()
+            task.spawn(function()
+                callback()
+                task.wait(0.2)
+                TweenService:Create(Button, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+                }):Play()
+                location[flag] = false
+            end)
+        end
+        Button.MouseButton1Click:Connect(OnClick)
     end
+
 
 
     return Window
