@@ -359,15 +359,15 @@ function Lib:Window(Name)
         local TextBox = Instance.new("TextBox", SectionFrame)
         local UICorner = Instance.new("UICorner", TextBox)
         TextBox.Name = "TextBox"
-        TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
         TextBox.Size = UDim2.new(1, 0, 0, 40)
         TextBox.Font = Enum.Font.GothamBold
-        TextBox.PlaceholderText = "Text"
         TextBox.TextSize = 14
-        TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
         TextBox.Text = location[flag]
         TextBox.ClearTextOnFocus = true
-    
+
+        TextBox.TextColor3 = options.textColor or Color3.fromRGB(255, 255, 255)
+        TextBox.BackgroundColor3 = options.backgroundColor or Color3.fromRGB(40, 40, 45)
+        TextBox.PlaceholderText = options.placeholder or "Введите текст"
         UICorner.CornerRadius = UDim.new(0, 6)
     
         TextBox:GetPropertyChangedSignal("Text"):Connect(function()
