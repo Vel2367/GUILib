@@ -344,7 +344,7 @@ function Lib:Window(Name)
         end
     end
 
-    function Window:TextButton(name, options, callback)
+    function Window:TextBox(name, options, callback)
         local section = options.section
         local location = options.location or self.flags
         local flag = options.flag
@@ -355,31 +355,29 @@ function Lib:Window(Name)
         local SectionFrame = SectionFinder:FindFirstChild(section)
         if not SectionFrame then return end
         location[flag] = ""
+        
         local TextBox = Instance.new("TextBox", SectionFrame)
         local UICorner = Instance.new("UICorner", TextBox)
         TextBox.Name = "TextBox"
         TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
         TextBox.Size = UDim2.new(1, 0, 0, 40)
         TextBox.Font = Enum.Font.GothamBold
-        TextBox.PlaceholderText = "Введите текст"
+        TextBox.PlaceholderText = "Text"
         TextBox.TextSize = 14
         TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
         TextBox.Text = location[flag]
         TextBox.ClearTextOnFocus = true
         TextBox.AutoButtonColor = false
-
+    
         UICorner.CornerRadius = UDim.new(0, 6)
-
+    
         TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            location[flag] = TextBox.Text
             task.spawn(function()
+                location[flag] = TextBox.Text
                 callback(TextBox.Text)
             end)
         end)
     end
-
-
-
 
     return Window
 end
