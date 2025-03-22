@@ -13,6 +13,8 @@ local placeId = game.PlaceId
 local Minimized, MinimizeUsable, visible, Usable = false, true, true, true
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
+local PlaceInfo = MarketplaceService:GetProductInfo(placeId, Enum.InfoType.Asset)
+
 local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
 ScriptGui.Name = "ScriptGui"
 ScriptGui.ResetOnSpawn = false
@@ -20,81 +22,115 @@ ScriptGui.ResetOnSpawn = false
 Uis.InputBegan:Connect(function(input, gameProcesses)
     if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
     Usable = false
+    visible = not visible
     for _, v in pairs(ScriptGui:GetDescendants()) do
         if v:IsA("GuiObject") then
-            local anim = visible and {Transparency = 0, Visible = true} or {Transparency = 1, Visible = false}
-            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), anim)
+            local targetTransparency = visible and 0 or 1
+            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = targetTransparency, TextTransparency = targetTransparency})
             tween:Play()
-            tween.Completed:Connect(function()
-                Usable = true
-            end)
         end
     end
-    visible = not visible
+    wait(0.5)
+    Usable = true
 end)
+
 
 function Lib:Window(Name)
     local Window = {}
-    local Place = MarketplaceService:GetProductInfo(placeId, Enum.InfoType.Asset) or nil
 
     local Main = Instance.new("Frame", ScriptGui)
-    Main.Name = "Window"
     local MainCorner = Instance.new("UICorner", Main)
-    local MainGradient = Instance.new("UIGradient", Main)
     local ButtonMinimize = Instance.new("TextButton", Main)
+    local MainGradient = Instance.new("UIGradient", Main)
 
+
+    Main.Name = "Window"
     Main.Active = true
     Main.Size = UDim2.new(0, 750, 0, 750)
     Main.Position = UDim2.new(0.5, -325, 0.5, -325)
+    Main.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     MainCorner.CornerRadius = UDim.new(0, 15)
+
+
     MainGradient.Color = ColorSequence.new(Color3.fromRGB(50, 50, 50), Color3.fromRGB(59, 59, 59))
     MainGradient.Rotation = 45
 
+    ButtonMinimize.Size = UDim2.new(0, 20, 0, 20)
+    ButtonMinimize.Position = UDim2.new(0, 710, 0, 20)
+    ButtonMinimize.Text = "X"
+    ButtonMinimize.TextSize = 10
+    ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
+    ButtonMinimize.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ButtonMinimize.BorderSizePixel = 0
+
     local function AddDrag(frame)
-        local dragging, offsetX, offsetY = false, 0, 0
-        frame.InputBegan:Connect(function(inp)
-            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+        local dragging, offset = false, Vector2.new()
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
-                offsetX = inp.Position.X - frame.AbsolutePosition.X
-                offsetY = inp.Position.Y - frame.AbsolutePosition.Y
+                offset = Vector2.new(input.Position.X - frame.AbsolutePosition.X, input.Position.Y - frame.AbsolutePosition.Y)
             end
         end)
-        game:GetService("RunService").RenderStepped:Connect(function()
-            if dragging then
-                frame.Position = UDim2.new(0, Mouse.X - offsetX, 0, Mouse.Y - offsetY)
+
+        frame.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                frame.Position = UDim2.new(0, Mouse.X - offset.X, 0, Mouse.Y - offset.Y)
             end
         end)
-        frame.InputEnded:Connect(function(inp)
-            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+
+        frame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
     end
-    AddDrag(Main)
 
-    ButtonMinimize.Size = UDim2.new(0, 20, 0, 20)
-    ButtonMinimize.Position = UDim2.new(0, 710, 0, 20)
-    ButtonMinimize.Transparency = 1
-    ButtonMinimize.Text = "X"
-    ButtonMinimize.TextSize = 10
-    ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
-    ButtonMinimize.TextTransparency = 0
-    ButtonMinimize.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    ButtonMinimize.BorderSizePixel = 0
+    AddDrag(Main)
 
     ButtonMinimize.MouseButton1Click:Connect(function()
         if not MinimizeUsable then return end
         MinimizeUsable = false
         Minimized = not Minimized
         ButtonMinimize.Text = Minimized and "―" or "X"
+
         local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
         local targetPosition = Minimized and UDim2.new(0, 710, 0, 5) or UDim2.new(0, 710, 0, 20)
+
         TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
         TS:Create(ButtonMinimize, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPosition}):Play()
+
         wait(0.5)
         MinimizeUsable = true
     end)
-    
+
+    local Sections = {}
+    local CurrentSection
+
+    function Window:Section(SectionName)
+        local SectionFrame = Instance.new("Frame", Main)
+        SectionFrame.Size = UDim2.new(1, 0, 1, -50)
+        SectionFrame.Position = UDim2.new(0, 0, 0, 50)
+        SectionFrame.Visible = #Sections == 0
+        SectionFrame.BackgroundTransparency = 1
+        Sections[SectionName] = SectionFrame
+
+        if not CurrentSection then
+            CurrentSection = SectionFrame
+        end
+
+        return SectionFrame
+    end
+
+    function Window:SwitchSection(SectionName)
+        if Sections[SectionName] and CurrentSection ~= Sections[SectionName] then
+            TS:Create(CurrentSection, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+            TS:Create(Sections[SectionName], TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
+            CurrentSection.Visible = false
+            Sections[SectionName].Visible = true
+            CurrentSection = Sections[SectionName]
+        end
+    end
 
 
 
