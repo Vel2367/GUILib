@@ -82,7 +82,7 @@ function Lib:Window(Name)
         if MinimizeUsable then
             MinimizeUsable = false
             Minimized = not Minimized
-            ButtonMinimize.Text = Minimized and "X" or "-"
+            ButtonMinimize.Text = Minimized and "X" or "―"
             local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
             local tween = TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
             tween.Completed:Connect(function()
