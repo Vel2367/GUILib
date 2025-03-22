@@ -35,6 +35,7 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
 end)
 
 
+
 function Lib:Window(Name)
     local Window = {}
 
@@ -42,7 +43,8 @@ function Lib:Window(Name)
     local MainCorner = Instance.new("UICorner", Main)
     local ButtonMinimize = Instance.new("TextButton", Main)
     local MainGradient = Instance.new("UIGradient", Main)
-
+    local Sections = Instance.new("ScrollingFrame", Main)
+    local Sectionslayout = Instance.new("UIListLayout", Sections)
 
     Main.Name = "Window"
     Main.Active = true
@@ -63,76 +65,75 @@ function Lib:Window(Name)
     ButtonMinimize.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     ButtonMinimize.BorderSizePixel = 0
 
+
     local function AddDrag(frame)
         local dragging, offset = false, Vector2.new()
-
         frame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
                 offset = Vector2.new(input.Position.X - frame.AbsolutePosition.X, input.Position.Y - frame.AbsolutePosition.Y)
             end
         end)
-
         frame.InputChanged:Connect(function(input)
             if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                 frame.Position = UDim2.new(0, Mouse.X - offset.X, 0, Mouse.Y - offset.Y)
             end
         end)
-
         frame.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
     end
-
     AddDrag(Main)
+
 
     ButtonMinimize.MouseButton1Click:Connect(function()
         if not MinimizeUsable then return end
         MinimizeUsable = false
         Minimized = not Minimized
         ButtonMinimize.Text = Minimized and "―" or "X"
-
         local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
         local targetPosition = Minimized and UDim2.new(0, 710, 0, 5) or UDim2.new(0, 710, 0, 20)
-
         TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
         TS:Create(ButtonMinimize, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPosition}):Play()
-
         wait(0.5)
         MinimizeUsable = true
     end)
 
-    local Sections = {}
-    local CurrentSection
 
-    function Window:Section(SectionName)
-        local SectionFrame = Instance.new("Frame", Main)
-        SectionFrame.Size = UDim2.new(1, 0, 1, -50)
-        SectionFrame.Position = UDim2.new(0, 0, 0, 50)
-        SectionFrame.Visible = #Sections == 0
-        SectionFrame.BackgroundTransparency = 1
-        Sections[SectionName] = SectionFrame
+    Sections.Position = UDim2.new(0.05,0,0.25,0)
+    Sections.Size = UDim2.new(0.9,0,0.7,0)
+    Sections.BorderSizePixel = 0
+    Sections.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Sections.ScrollBarThickness = 0
+    Sections.CanvasSize = UDim2.new(0, 0, 1, 0)
+    Sections.ScrollingDirection = Enum.ScrollingDirection.X
+    Sectionslayout.FillDirection = Enum.FillDirection.Horizontal
+    Sectionslayout.SortOrder = Enum.SortOrder.LayoutOrder
+    Sectionslayout.Padding = UDim.new(0, 10)
 
-        if not CurrentSection then
-            CurrentSection = SectionFrame
-        end
 
-        return SectionFrame
+    local function UpdateCanvasSize()
+        Sections.CanvasSize = UDim2.new(0, Sectionslayout.AbsoluteContentSize.X, 1, 0)
     end
+    Sectionslayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateCanvasSize)
+    UpdateCanvasSize()
 
-    function Window:SwitchSection(SectionName)
-        if Sections[SectionName] and CurrentSection ~= Sections[SectionName] then
-            TS:Create(CurrentSection, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-            TS:Create(Sections[SectionName], TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
-            CurrentSection.Visible = false
-            Sections[SectionName].Visible = true
-            CurrentSection = Sections[SectionName]
-        end
+    function Window:CreateSection(sectionName)
+        local Section = Instance.new("Frame", Sections)
+        Section.Size = UDim2.new(0, 150, 1, 0)
+        Section.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        Section.BorderSizePixel = 0
+
+        local SectionLabel = Instance.new("TextLabel", Section)
+        SectionLabel.Size = UDim2.new(1, 0, 0, 30)
+        SectionLabel.BackgroundTransparency = 1
+        SectionLabel.Text = sectionName
+        SectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SectionLabel.Font = Enum.Font.GothamBold
+        SectionLabel.TextSize = 14
     end
-
-
 
     return Window
     end
