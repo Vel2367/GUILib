@@ -1,0 +1,57 @@
+local Lib = {}
+
+if game.CoreGui:FindFirstChild("ScriptGui") then
+    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+end
+
+local player = game.Players.LocalPlayer
+local Uis = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local visible, Usable = true, true
+
+if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
+
+
+local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
+ScriptGui.Name = "ScriptGui"
+ScriptGui.ResetOnSpawn = false
+
+Uis.InputBegan:Connect(function(input, gameProcesses)
+    if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
+    Usable = false
+    for _,v in pairs(ScriptGui:GetDescendants()) do
+        if v:IsA("GuiObject") then
+            local anim = visible and {Transparency = 0, Visible = true} or {Transparency = 1, Visible = false}
+            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), anim)
+            tween:Play()
+            tween.Completed:Connect(function()
+                Usable = true end)
+        end
+    end
+    visible = not visible
+end)
+
+
+function Lib:Window(Name)
+    local Window = {}
+
+    local Main = Instance.new("Frame", ScriptGui)
+    Main.Name = "Window"
+    local MainCorner = Instance.new("UICorner", Main)
+    local MainGradient = Instance.new("UIGradient", Main)
+    
+    Main.Size = UDim2.new(0,750,0,750)
+    Main.Position = UDim2.new(0.5,-325,0.5,-325)
+    MainCorner.CornerRadius = UDim.new(0,10)
+    MainGradient.Color = ColorSequence.new(
+        Color3.fromRGB(50, 50, 50),
+        Color3.fromRGB(100, 100, 100)
+    )
+    MainGradient.Rotation = 45
+
+
+
+    return Window
+    end
+
+return Lib
