@@ -50,6 +50,7 @@ function Lib:Window(Name)
     local Main = Instance.new("Frame", ScriptGui)
     local MainStroke = Instance.new("UIStroke", Main)
     local MainGradient = Instance.new("UIGradient", Main)
+    Main.Name = Name
     Main.Size = UDim2.new(0,600,0,600)
     Main.Position = UDim2.new(0.5,-300,0.5,-300)
     Main.Active = true
@@ -78,7 +79,7 @@ function Lib:Window(Name)
         end)
     end
     AddDrag(Main)
-    
+
 
     return Window
 end
