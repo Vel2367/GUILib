@@ -1,384 +1,103 @@
 local Lib = {}
 
 if game.CoreGui:FindFirstChild("ScriptGui") then
-    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+    game.CoreGui.ScriptGui:Destroy()
 end
+
+local player = game.Players.LocalPlayer
+local Uis = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local Mouse = player:GetMouse()
+local MarketplaceService = game:GetService("MarketplaceService")
+local placeId = game.PlaceId
+local Minimized, MinimizeUsable, visible, Usable = false, true, true, true
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
 local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
 ScriptGui.Name = "ScriptGui"
+ScriptGui.ResetOnSpawn = false
 
-
-local UIS = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local visible, Usable = true, true
-local Player = game.Players.LocalPlayer
-
+Uis.InputBegan:Connect(function(input, gameProcesses)
+    if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
+    Usable = false
+    for _, v in pairs(ScriptGui:GetDescendants()) do
+        if v:IsA("GuiObject") then
+            local anim = visible and {Transparency = 0, Visible = true} or {Transparency = 1, Visible = false}
+            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), anim)
+            tween:Play()
+            tween.Completed:Connect(function()
+                Usable = true
+            end)
+        end
+    end
+    visible = not visible
+end)
 
 function Lib:Window(Name)
     local Window = {}
+    local Place = MarketplaceService:GetProductInfo(placeId, Enum.InfoType.Asset) or nil
 
     local Main = Instance.new("Frame", ScriptGui)
-    Main.Name = "Main"
-    local MainUICorner = Instance.new("UICorner", Main)
-    local MainUIGradient = Instance.new("UIGradient", Main)
-    local MainUIStroke = Instance.new("UIStroke", Main)
-    local MainSeparator1 = Instance.new("Frame", Main)
-    MainSeparator1.Name = "Seporator1"
-    local MainSeparator1UIGradient = Instance.new("UIGradient",MainSeparator1)
+    Main.Name = "Window"
+    local MainCorner = Instance.new("UICorner", Main)
+    local MainGradient = Instance.new("UIGradient", Main)
+    local ButtonMinimize = Instance.new("TextButton", Main)
 
-    local WindowPonel = Instance.new("Frame", Main)
-    WindowPonel.Name = "Window"
-    local WindowMinimize = Instance.new("ImageButton", WindowPonel)
-    
-    local PlayerInfo = Instance.new("Frame", Main)
-    PlayerInfo.Name = "PlayerInfo"
-    local PlayerInfoUICorner = Instance.new("UICorner", PlayerInfo)
-    local PlayerInfoUIGradient = Instance.new("UIGradient", PlayerInfo)
-    local PlayerIcon = Instance.new("ImageLabel",PlayerInfo)
-    local PlayerIconUICorner = Instance.new("UICorner", PlayerIcon)
-    local PlayerName = Instance.new("TextLabel", PlayerInfo)
-
-    local SectionDepartment = Instance.new("ScrollingFrame", Main)
-    SectionDepartment.Name = "SectionsButton"
-    local SectionDepartmentUIListLayout = Instance.new("UIListLayout", SectionDepartment)
-
-    local SectionFinder = Instance.new("Frame", Main)
-    SectionFinder.Name = "Sections"
-
-
-    Main.Size = UDim2.new(0,400,0,500)
-    Main.Position = UDim2.new(0.5,0,0.3,0)
     Main.Active = true
-    Main.BackgroundTransparency = 0.1
-    MainUICorner.CornerRadius = UDim.new(0,20)
-    MainUIGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(25,25,25)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(35,35,35)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(25,25,25))
-    }
-    MainUIStroke.Thickness = 5
-    MainUIStroke.Color = Color3.fromRGB(35,35,35)
-    MainUIStroke.Transparency = 0.01
+    Main.Size = UDim2.new(0, 750, 0, 750)
+    Main.Position = UDim2.new(0.5, -325, 0.5, -325)
+    MainCorner.CornerRadius = UDim.new(0, 15)
+    MainGradient.Color = ColorSequence.new(Color3.fromRGB(50, 50, 50), Color3.fromRGB(59, 59, 59))
+    MainGradient.Rotation = 45
 
-    WindowPonel.Position = UDim2.new(0.05,0,0.015,0)
-    WindowPonel.Size = UDim2.new(0.9,0,0,15)
-    WindowPonel.BackgroundTransparency = 1
-    WindowMinimize.Active = true
-    WindowMinimize.Position = UDim2.new(0.95,0,0,0)
-    WindowMinimize.Size = UDim2.new(0,20,1,0)
-    WindowMinimize.Image = "rbxassetid://104192469031504"
-    WindowMinimize.BackgroundTransparency = 1
-
-    PlayerInfo.Position = UDim2.new(0.05,0,0,40)
-    PlayerInfo.Size = UDim2.new(0.5,0,0.12,0)
-    PlayerInfoUIGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(45,45,45)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(35,35,35)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(45,45,45))
-    }
-    PlayerInfoUICorner.CornerRadius = UDim.new(0,10)
-    PlayerIcon.Position = UDim2.new(0.05,0,0,0)
-    PlayerIcon.Size = UDim2.new(0.305,0,1,0)
-    PlayerIcon.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    PlayerIconUICorner.CornerRadius = UDim.new(1,0)
-    PlayerIcon.Image = game.Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size352x352)
-    PlayerName.Position = UDim2.new(0.4,0,0.1,0)
-    PlayerName.Size = UDim2.new(0.5,0,0.4,0)
-    PlayerName.BackgroundTransparency = 1
-    PlayerName.TextSize = 14
-    PlayerName.TextColor3 = Color3.fromRGB(255,255,255)
-    PlayerName.TextXAlignment = "Left" 
-    PlayerName.Text = "@"..Player.Name
-
-    MainSeparator1.Position = UDim2.new(0.05,0,0.22,0)
-    MainSeparator1.Size = UDim2.new(0.9,0,0,3)
-    MainSeparator1.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    MainSeparator1UIGradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.2, 0),
-        NumberSequenceKeypoint.new(0.8, 0),
-        NumberSequenceKeypoint.new(1, 1),
-    }
-
-    SectionDepartment.Position = UDim2.new(0.05,0,0.25,0)
-    SectionDepartment.Size = UDim2.new(0.9,0,0.07,0)
-    SectionDepartment.AutomaticCanvasSize = Enum.AutomaticSize.X
-    SectionDepartment.Transparency = 1
-    SectionDepartment.ScrollBarThickness = 0
-    SectionDepartment.ScrollingDirection = Enum.ScrollingDirection.X
-    SectionDepartmentUIListLayout.FillDirection = Enum.FillDirection.Horizontal
-    SectionDepartmentUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SectionDepartmentUIListLayout.Padding = UDim.new(0,3)
-
-    SectionFinder.Position = UDim2.new(0.05,0,0.35,0)
-    SectionFinder.Size = UDim2.new(0.9,0,0.6,0)
-    SectionFinder.Transparency = 1
-
-
-    WindowMinimize.MouseButton1Click:Connect(function()
-        local isMinimized = Main.Size.Y.Offset > 50
-        local sizeTarget = isMinimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 400, 0, 500)
-        local playerTarget = isMinimized and {Position = UDim2.new(0.05, 0, 0, 5), Size = UDim2.new(0.5, 0, 0, 40)} 
-                                        or {Position = UDim2.new(0.05, 0, 0, 40), Size = UDim2.new(0.5, 0, 0.12, 0)}
-        local visibilityTarget = not isMinimized
-        local crumpling = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        local elementsToToggle = {MainSeparator1, SectionDepartment, SectionFinder}
-
-        TweenService:Create(Main, crumpling, {Size = sizeTarget}):Play()
-        for _, element in ipairs(elementsToToggle) do
-            TweenService:Create(element, crumpling, {Visible = visibilityTarget}):Play()
-        end
-        wait(0.2)
-        TweenService:Create(PlayerInfo, crumpling, playerTarget):Play()
-    end)
-
-    local function Drag(Frame)
-        local dragging = false
-        local startPos, startMousePos 
-
-        Frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    local function AddDrag(frame)
+        local dragging, offsetX, offsetY = false, 0, 0
+        frame.InputBegan:Connect(function(inp)
+            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
-                startMousePos, startPos = input.Position, Frame.Position
+                offsetX = inp.Position.X - frame.AbsolutePosition.X
+                offsetY = inp.Position.Y - frame.AbsolutePosition.Y
             end
         end)
-
-        Frame.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if dragging then
+                frame.Position = UDim2.new(0, Mouse.X - offsetX, 0, Mouse.Y - offsetY)
+            end
+        end)
+        frame.InputEnded:Connect(function(inp)
+            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
-
-        UIS.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - startMousePos
-                Frame.Position = UDim2.new(
-                    startPos.X.Scale, startPos.X.Offset + delta.X,
-                    startPos.Y.Scale, startPos.Y.Offset + delta.Y
-                )
-            end
-        end)
     end
-    Drag(Main)
+    AddDrag(Main)
 
-    function Window:Section(Name)
-        local Section = Instance.new("TextButton", SectionDepartment)
-        Section.Name = Name or "Section"
-        local SectionUICorner = Instance.new("UICorner", Section)
-        local SectionUIGradient = Instance.new("UIGradient", Section)
-        local SectionField = Instance.new("ScrollingFrame", SectionFinder)
-        local SectionFieldUIListLayout = Instance.new("UIListLayout", SectionField)
+    ButtonMinimize.Size = UDim2.new(0, 20, 0, 20)
+    ButtonMinimize.Position = UDim2.new(0, 710, 0, 20)
+    ButtonMinimize.Transparency = 1
+    ButtonMinimize.Text = "X"
+    ButtonMinimize.TextSize = 10
+    ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
+    ButtonMinimize.TextTransparency = 0
+    ButtonMinimize.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ButtonMinimize.BorderSizePixel = 0
 
-
-        SectionField.Name = Name or "Section"
-        Section.Size = UDim2.new(0,100,0,35)
-        SectionUICorner.CornerRadius = UDim.new(1,0)
-        SectionUIGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(70,70,70)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(40,40,40))
-        }
-        Section.Text = Name or "Section"
-        Section.TextSize = 15
-        Section.TextColor3 = Color3.fromRGB(255,255,255)
-
-        SectionField.Size = UDim2.new(1,0,1,0)
-        SectionField.BackgroundColor3 = Color3.fromRGB(35,35,35)
-        SectionField.BorderSizePixel = 0
-        SectionField.Visible = false
-        SectionField.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        SectionField.Transparency = 1
-        SectionField.ScrollBarThickness = 0
-        SectionField.ScrollingDirection = Enum.ScrollingDirection.Y
-        SectionFieldUIListLayout.Padding = UDim.new(0,5)
-
-        local function updateScrolling()
-            SectionField.ScrollingEnabled = SectionFieldUIListLayout.AbsoluteContentSize.Y > SectionField.AbsoluteSize.Y
-        end
-        SectionFieldUIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateScrolling)
-        updateScrolling()
-
-        local function hideAllSections()
-            for _, child in ipairs(SectionFinder:GetChildren()) do
-                if child:IsA("ScrollingFrame") and child ~= SectionField then
-                    TweenService:Create(child, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
-                    wait(0.1)
-                    child.Visible = false
-                end
-            end
-        end
-
-        Section.MouseButton1Click:Connect(function()
-            hideAllSections()
-            SectionField.Visible = true
-            TweenService:Create(SectionField, TweenInfo.new(0.2,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 0}):Play()
-        end)
-    end
-
-    function Window:Button(name, options, callback)
-        options = options or {}
-        callback = callback or function() end
-        local section = options.section
-        local flag = options.flag
-        local location = options.location
-        local default = options.default or false
-
-        local SectionFrame = SectionFinder:FindFirstChild(section)
-        if not SectionFrame then return end
-
-        local Button = Instance.new("Frame", SectionFrame)
-        local UICorner = Instance.new("UICorner", Button)
-        local Text = Instance.new("TextLabel", Button)
-        local Toggle = Instance.new("Frame", Button)
-        local ToggleCorner = Instance.new("UICorner", Toggle)
-
-        Button.Name = "Button"
-        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-        Button.Size = UDim2.new(1, 0, 0, 40)
-
-        UICorner.CornerRadius = UDim.new(0, 6)
-
-        Text.Name = "Text"
-        Text.BackgroundTransparency = 1
-        Text.Position = UDim2.new(0, 10, 0, 0)
-        Text.Size = UDim2.new(1, -40, 1, 0)
-        Text.Font = Enum.Font.GothamBold
-        Text.Text = name
-        Text.TextSize = 14
-        Text.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Text.TextXAlignment = Enum.TextXAlignment.Left
-
-        Toggle.Name = "Toggle"
-        Toggle.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-        Toggle.Size = UDim2.new(0, 25, 0, 25)
-        Toggle.Position = UDim2.new(1, -35, 0.5, -12)
-
-        ToggleCorner.CornerRadius = UDim.new(1, 0)
-
-        if location and flag then
-            location[flag] = Button
-        end
-
-        if default then
-            Text.TextColor3 = default
-        end
-
-        Button.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                task.spawn(callback)
-            end
-        end)
-    end
-
-    function Window:Toggle(name, options, callback)
-        local section = options.section
-        local default = options.default or false
-        local location = options.location or self.flags
-        local flag = options.flag
-        if not flag or flag == "" then
-            return
-        end
-        callback = callback or function() end
-
-        local SectionFrame = SectionFinder:FindFirstChild(section)
-        if not SectionFrame then return end
-
-        location[flag] = default
-
-        local Toggle = Instance.new("Frame", SectionFrame)
-        local UICorner = Instance.new("UICorner", Toggle)
-        local TextLabel = Instance.new("TextLabel", Toggle)
-        local Switch = Instance.new("Frame" ,Toggle)
-        local SwitchCorner = Instance.new("UICorner", Switch)
-        local Knob = Instance.new("Frame", Switch)
-        local KnobCorner = Instance.new("UICorner", Knob)
-
-        Toggle.Name = "Toggle"
-        Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
-        Toggle.Size = UDim2.new(1, 0, 0, 40)
-        
-        UICorner.CornerRadius = UDim.new(0, 6)
-        
-        TextLabel.Name = "Text"
-        TextLabel.BackgroundTransparency = 1
-        TextLabel.Position = UDim2.new(0, 10, 0, 0)
-        TextLabel.Size = UDim2.new(1, -50, 1, 0)
-        TextLabel.Font = Enum.Font.GothamBold
-        TextLabel.Text = name
-        TextLabel.TextSize = 14
-        TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-        Switch.Name = "Switch"
-        Switch.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-        Switch.Position = UDim2.new(1, -45, 0.5, -12)
-        Switch.Size = UDim2.new(0, 40, 0, 20)
-        SwitchCorner.CornerRadius = UDim.new(1, 0)
-
-        Knob.Name = "Knob"
-        Knob.BackgroundColor3 = default and Color3.new(0.235294, 0.415686, 0.588235) or Color3.fromRGB(90, 90, 100)
-        Knob.Position = default and UDim2.new(1, -18, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
-        Knob.Size = UDim2.new(0, 18, 0, 18)
-        KnobCorner.CornerRadius = UDim.new(1, 0)
-
-        local function ToggleSwitch()
-            location[flag] = not location[flag]
-            local isOn = location[flag]
-            
-            TweenService:Create(Knob, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Position = isOn and UDim2.new(1, -18, 0.5, -9) or UDim2.new(0, 3, 0.5, -9),
-                BackgroundColor3 = isOn and Color3.new(0.235294, 0.415686, 0.588235) or Color3.fromRGB(90, 90, 100)
-            }):Play()
-
-            task.spawn(callback, isOn)
-        end
-
-        Switch.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                ToggleSwitch()
-            end
-        end)
-
-        if default then
-            task.spawn(callback, true)
-        end
-    end
-
-    function Window:TextBox(name, options, callback)
-        local section = options.section
-        local location = options.location or self.flags
-        local flag = options.flag
-        if not flag or flag == "" then
-            return
-        end
-        callback = callback or function() end
-        local SectionFrame = SectionFinder:FindFirstChild(section)
-        if not SectionFrame then return end
-        location[flag] = ""
-        
-        local TextBox = Instance.new("TextBox", SectionFrame)
-        local UICorner = Instance.new("UICorner", TextBox)
-        TextBox.Name = "TextBox"
-        TextBox.Size = UDim2.new(1, 0, 0, 40)
-        TextBox.Font = Enum.Font.GothamBold
-        TextBox.TextSize = 14
-        TextBox.Text = location[flag]
-        TextBox.ClearTextOnFocus = true
-
-        TextBox.TextColor3 = options.textColor or Color3.fromRGB(255, 255, 255)
-        TextBox.BackgroundColor3 = options.backgroundColor or Color3.fromRGB(40, 40, 45)
-        TextBox.PlaceholderText = options.placeholder or "Введите текст"
-        UICorner.CornerRadius = UDim.new(0, 6)
+    ButtonMinimize.MouseButton1Click:Connect(function()
+        if not MinimizeUsable then return end
+        MinimizeUsable = false
+        Minimized = not Minimized
+        ButtonMinimize.Text = Minimized and "―" or "X"
+        local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
+        local targetPosition = Minimized and UDim2.new(0, 710, 0, 5) or UDim2.new(0, 710, 0, 20)
+        TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+        TS:Create(ButtonMinimize, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPosition}):Play()
+        wait(0.5)
+        MinimizeUsable = true
+    end)
     
-        TextBox:GetPropertyChangedSignal("Text"):Connect(function()
-            task.spawn(function()
-                location[flag] = TextBox.Text
-                callback(TextBox.Text)
-            end)
-        end)
-    end
+
+
 
     return Window
-end
-
+    end
 return Lib
