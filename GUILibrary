@@ -79,7 +79,7 @@ function Lib:Window(Name)
     ButtonMinimize.MouseButton1Click:Connect(function()
         if not MinimizeUsable then return end
         MinimizeUsable = false
-        Minimized = not Minimized
+        Minimized = not Minimized "―"
         ButtonMinimize.Text = Minimized and "―" or "X"
         local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
         local targetPosition = Minimized and UDim2.new(0, 710, 0, 5) or UDim2.new(0, 710, 0, 20)
