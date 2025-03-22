@@ -77,18 +77,19 @@ function Lib:Window(Name)
     ButtonMinimize.TextSize = 10
     ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
     ButtonMinimize.TextTransparency = 0
-
+    
     ButtonMinimize.MouseButton1Click:Connect(function()
-        if MinimizeUsable then
-            MinimizeUsable = false
-            Minimized = not Minimized
-            ButtonMinimize.Text = Minimized and "X" or "―"
-            local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
-            local tween = TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
-            tween.Completed:Connect(function()
-                MinimizeUsable = true
-            end)
-        end
+        if not MinimizeUsable then return end
+        MinimizeUsable = false
+        Minimized = not Minimized
+        ButtonMinimize.Text = Minimized and "X" or "―"
+        local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
+        local targetPosition = Minimized and UDim2.new(0, 710, 0, 20) or UDim2.new(0, 710, 0, 5)
+        local tween = TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+        TS:Create(ButtonMinimize, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPosition}):Play()
+        tween.Completed:Connect(function()
+            MinimizeUsable = true
+        end)
     end)
 
 
