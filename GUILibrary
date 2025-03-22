@@ -1,5 +1,6 @@
 local Lib = {}
 
+
 if game.CoreGui:FindFirstChild("ScriptGui") then
     game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
 end
@@ -7,10 +8,9 @@ end
 local player = game.Players.LocalPlayer
 local Uis = game:GetService("UserInputService")
 local TS = game:GetService("TweenService")
-local visible, Usable = true, true
-
+local Mouse = player:GetMouse()
+local Minimized, MinimizeUsable, visible, Usable = false, true, true, true
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
-
 
 local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
 ScriptGui.Name = "ScriptGui"
@@ -25,33 +25,71 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
             local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), anim)
             tween:Play()
             tween.Completed:Connect(function()
-                Usable = true end)
+                Usable = true
+            end)
         end
     end
     visible = not visible
 end)
 
-
 function Lib:Window(Name)
     local Window = {}
-
     local Main = Instance.new("Frame", ScriptGui)
     Main.Name = "Window"
     local MainCorner = Instance.new("UICorner", Main)
     local MainGradient = Instance.new("UIGradient", Main)
-    
-    Main.Size = UDim2.new(0,750,0,750)
-    Main.Position = UDim2.new(0.5,-325,0.5,-325)
-    MainCorner.CornerRadius = UDim.new(0,10)
-    MainGradient.Color = ColorSequence.new(
-        Color3.fromRGB(50, 50, 50),
-        Color3.fromRGB(100, 100, 100)
-    )
+    local ButtonMinimize = Instance.new("TextButton", Main)
+
+
+    Main.Active = true
+    Main.Size = UDim2.new(0, 750, 0, 750)
+    Main.Position = UDim2.new(0.5, -325, 0.5, -325)
+    MainCorner.CornerRadius = UDim.new(0, 15)
+    MainGradient.Color = ColorSequence.new(Color3.fromRGB(50, 50, 50), Color3.fromRGB(59, 59, 59))
     MainGradient.Rotation = 45
 
+    local function AddDrag(frame)
+        local dragging, offsetX, offsetY = false, 0, 0
+        frame.InputBegan:Connect(function(inp)
+            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                offsetX = inp.Position.X - frame.AbsolutePosition.X
+                offsetY = inp.Position.Y - frame.AbsolutePosition.Y
+            end
+        end)
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if dragging then
+                frame.Position = UDim2.new(0, Mouse.X - offsetX, 0, Mouse.Y - offsetY)
+            end
+        end)
+        frame.InputEnded:Connect(function(inp)
+            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+    end
+    AddDrag(Main)
+
+    ButtonMinimize.Size = UDim2.new(0, 20, 0, 20)
+    ButtonMinimize.Position = UDim2.new(0.945, 0, 0.02, 0)
+    ButtonMinimize.Transparency = 1
+    ButtonMinimize.Text = "X"
+    ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
+
+    ButtonMinimize.MouseButton1Click:Connect(function()
+        if MinimizeUsable then
+            MinimizeUsable = false
+            Minimized = not Minimized
+            ButtonMinimize.Text = Minimized and "X" or "-"
+            local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
+            local tween = TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+            tween.Completed:Connect(function()
+                MinimizeUsable = true
+            end)
+        end
+    end)
 
 
     return Window
     end
-
 return Lib
