@@ -1,5 +1,4 @@
 local Lib = {}
-game.Loaded:Wait()
 
 local player = game.Players.LocalPlayer
 local Uis = game:GetService("UserInputService")
