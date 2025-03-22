@@ -65,28 +65,25 @@ function Lib:Window(Name)
 
     local function AddDrag(frame)
         local dragging, offset = false, Vector2.new()
-
         frame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
                 offset = Vector2.new(input.Position.X - frame.AbsolutePosition.X, input.Position.Y - frame.AbsolutePosition.Y)
             end
         end)
-
         frame.InputChanged:Connect(function(input)
             if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                 frame.Position = UDim2.new(0, Mouse.X - offset.X, 0, Mouse.Y - offset.Y)
             end
         end)
-
         frame.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
             end
         end)
     end
-
     AddDrag(Main)
+
 
     ButtonMinimize.MouseButton1Click:Connect(function()
         if not MinimizeUsable then return end
@@ -122,7 +119,7 @@ function Lib:Window(Name)
     Sectionslayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateCanvasSize)
     UpdateCanvasSize()
 
-    function Window:CreateSection(sectionName)
+    function Window:Section(sectionName)
         local Section = Instance.new("Frame", Sections)
         Section.Size = UDim2.new(0, 220, 1, 0)
         Section.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
