@@ -1,8 +1,7 @@
 local Lib = {}
 
-
 if game.CoreGui:FindFirstChild("ScriptGui") then
-    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+    game.CoreGui.ScriptGui:Destroy()
 end
 
 local player = game.Players.LocalPlayer
@@ -19,7 +18,7 @@ ScriptGui.ResetOnSpawn = false
 Uis.InputBegan:Connect(function(input, gameProcesses)
     if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
     Usable = false
-    for _,v in pairs(ScriptGui:GetDescendants()) do
+    for _, v in pairs(ScriptGui:GetDescendants()) do
         if v:IsA("GuiObject") then
             local anim = visible and {Transparency = 0, Visible = true} or {Transparency = 1, Visible = false}
             local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), anim)
@@ -39,7 +38,6 @@ function Lib:Window(Name)
     local MainCorner = Instance.new("UICorner", Main)
     local MainGradient = Instance.new("UIGradient", Main)
     local ButtonMinimize = Instance.new("TextButton", Main)
-
 
     Main.Active = true
     Main.Size = UDim2.new(0, 750, 0, 750)
@@ -85,11 +83,10 @@ function Lib:Window(Name)
         ButtonMinimize.Text = Minimized and "X" or "―"
         local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
         local targetPosition = Minimized and UDim2.new(0, 710, 0, 20) or UDim2.new(0, 710, 0, 5)
-        local tween = TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+        TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
         TS:Create(ButtonMinimize, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPosition}):Play()
-        tween.Completed:Connect(function()
-            MinimizeUsable = true
-        end)
+        wait(0.5)
+        MinimizeUsable = true
     end)
 
 
