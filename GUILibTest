@@ -25,8 +25,9 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
     visible = not visible
     for _, v in pairs(ScriptGui:GetDescendants()) do
         if v:IsA("GuiObject") then
+            v.Visible = visible
             local targetTransparency = visible and 0 or 1
-            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = targetTransparency, TextTransparency = targetTransparency})
+            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = targetTransparency})
             tween:Play()
         end
     end
@@ -93,26 +94,30 @@ function Lib:Window(Name)
         MinimizeUsable = false
         Minimized = not Minimized
         ButtonMinimize.Text = Minimized and "―" or "X"
+
         local targetSize = Minimized and UDim2.new(0, 750, 0, 30) or UDim2.new(0, 750, 0, 750)
         local targetPosition = Minimized and UDim2.new(0, 710, 0, 5) or UDim2.new(0, 710, 0, 20)
+
         TS:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = targetSize}):Play()
         TS:Create(ButtonMinimize, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPosition}):Play()
+        Sections.Visible = not Minimized
+
         wait(0.5)
         MinimizeUsable = true
     end)
 
 
+
     Sections.Position = UDim2.new(0.05,0,0.25,0)
     Sections.Size = UDim2.new(0.9,0,0.7,0)
     Sections.BorderSizePixel = 0
-    Sections.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Sections.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     Sections.ScrollBarThickness = 0
     Sections.CanvasSize = UDim2.new(0, 0, 1, 0)
     Sections.ScrollingDirection = Enum.ScrollingDirection.X
     Sectionslayout.FillDirection = Enum.FillDirection.Horizontal
     Sectionslayout.SortOrder = Enum.SortOrder.LayoutOrder
     Sectionslayout.Padding = UDim.new(0, 10)
-
 
     local function UpdateCanvasSize()
         Sections.CanvasSize = UDim2.new(0, Sectionslayout.AbsoluteContentSize.X, 1, 0)
@@ -122,15 +127,17 @@ function Lib:Window(Name)
 
     function Window:CreateSection(sectionName)
         local Section = Instance.new("Frame", Sections)
-        Section.Size = UDim2.new(0, 150, 1, 0)
-        Section.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        Section.BorderSizePixel = 0
+        Section.Size = UDim2.new(0, 200, 1, 0)
+        Section.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        Section.BorderSizePixel = 2
+        Section.BorderColor3 = Color3.fromRGB(120, 120, 120)
 
         local SectionLabel = Instance.new("TextLabel", Section)
-        SectionLabel.Size = UDim2.new(1, 0, 0, 30)
+        SectionLabel.Size = UDim2.new(1, -4, 0, 30)
+        SectionLabel.Position = UDim2.new(0, 2, 0, 2)
         SectionLabel.BackgroundTransparency = 1
         SectionLabel.Text = sectionName
-        SectionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SectionLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
         SectionLabel.Font = Enum.Font.GothamBold
         SectionLabel.TextSize = 14
     end
