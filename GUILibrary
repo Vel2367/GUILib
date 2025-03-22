@@ -71,7 +71,7 @@ function Lib:Window(Name)
     AddDrag(Main)
 
     ButtonMinimize.Size = UDim2.new(0, 20, 0, 20)
-    ButtonMinimize.Position = UDim2.new(0.945, 0, 0.02, 0)
+    ButtonMinimize.Position = UDim2.new(0, 710, 0, 20)
     ButtonMinimize.Transparency = 1
     ButtonMinimize.Text = "X"
     ButtonMinimize.TextSize = 10
