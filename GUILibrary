@@ -74,7 +74,9 @@ function Lib:Window(Name)
     ButtonMinimize.Position = UDim2.new(0.945, 0, 0.02, 0)
     ButtonMinimize.Transparency = 1
     ButtonMinimize.Text = "X"
+    ButtonMinimize.TextSize = 10
     ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
+    ButtonMinimize.TextTransparency = 0
 
     ButtonMinimize.MouseButton1Click:Connect(function()
         if MinimizeUsable then
