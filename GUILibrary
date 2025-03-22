@@ -37,6 +37,7 @@ end)
 
 
 
+
 function Lib:Window(Name)
     local Window = {}
 
@@ -51,19 +52,18 @@ function Lib:Window(Name)
     Main.Active = true
     Main.Size = UDim2.new(0, 750, 0, 750)
     Main.Position = UDim2.new(0.5, -325, 0.5, -325)
-    Main.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    MainCorner.CornerRadius = UDim.new(0, 15)
+    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainCorner.CornerRadius = UDim.new(0, 20)
 
-
-    MainGradient.Color = ColorSequence.new(Color3.fromRGB(50, 50, 50), Color3.fromRGB(59, 59, 59))
+    MainGradient.Color = ColorSequence.new(Color3.fromRGB(40, 40, 40), Color3.fromRGB(55, 55, 55))
     MainGradient.Rotation = 45
 
     ButtonMinimize.Size = UDim2.new(0, 20, 0, 20)
     ButtonMinimize.Position = UDim2.new(0, 710, 0, 20)
     ButtonMinimize.Text = "X"
     ButtonMinimize.TextSize = 10
-    ButtonMinimize.TextColor3 = Color3.fromRGB(145, 145, 145)
-    ButtonMinimize.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ButtonMinimize.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ButtonMinimize.BackgroundColor3 = Color3.fromRGB(80, 20, 20)
     ButtonMinimize.BorderSizePixel = 0
 
 
@@ -108,16 +108,16 @@ function Lib:Window(Name)
 
 
 
-    Sections.Position = UDim2.new(0.05,0,0.25,0)
-    Sections.Size = UDim2.new(0.9,0,0.7,0)
+    Sections.Position = UDim2.new(0.05, 0, 0.3, 0)
+    Sections.Size = UDim2.new(0.9, 0, 0.65, 0)
     Sections.BorderSizePixel = 0
     Sections.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    Sections.ScrollBarThickness = 0
+    Sections.ScrollBarThickness = 5
     Sections.CanvasSize = UDim2.new(0, 0, 1, 0)
     Sections.ScrollingDirection = Enum.ScrollingDirection.X
     Sectionslayout.FillDirection = Enum.FillDirection.Horizontal
     Sectionslayout.SortOrder = Enum.SortOrder.LayoutOrder
-    Sectionslayout.Padding = UDim.new(0, 10)
+    Sectionslayout.Padding = UDim.new(0, 15)
 
     local function UpdateCanvasSize()
         Sections.CanvasSize = UDim2.new(0, Sectionslayout.AbsoluteContentSize.X, 1, 0)
@@ -127,19 +127,21 @@ function Lib:Window(Name)
 
     function Window:CreateSection(sectionName)
         local Section = Instance.new("Frame", Sections)
-        Section.Size = UDim2.new(0, 200, 1, 0)
-        Section.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        Section.BorderSizePixel = 2
-        Section.BorderColor3 = Color3.fromRGB(120, 120, 120)
-
+        local SectionCorner = Instance.new("UICorner", Section)
         local SectionLabel = Instance.new("TextLabel", Section)
-        SectionLabel.Size = UDim2.new(1, -4, 0, 30)
-        SectionLabel.Position = UDim2.new(0, 2, 0, 2)
+
+        Section.Size = UDim2.new(0, 220, 1, 0)
+        Section.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        Section.BorderSizePixel = 0
+        
+        SectionCorner.CornerRadius = UDim.new(0, 12)
+
+        SectionLabel.Size = UDim2.new(1, 0, 0, 30)
         SectionLabel.BackgroundTransparency = 1
         SectionLabel.Text = sectionName
         SectionLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
         SectionLabel.Font = Enum.Font.GothamBold
-        SectionLabel.TextSize = 14
+        SectionLabel.TextSize = 16
     end
 
     return Window
