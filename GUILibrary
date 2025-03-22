@@ -26,9 +26,6 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
     for _, v in pairs(ScriptGui:GetDescendants()) do
         if v:IsA("GuiObject") then
             v.Visible = visible
-            local targetTransparency = visible and 0 or 1
-            local tween = TS:Create(v, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = targetTransparency})
-            tween:Play()
         end
     end
     wait(0.5)
