@@ -42,23 +42,23 @@ function Lib:Window(Name)
     local Window = {}
     
     local Frame = Instance.new("Frame", ScriptGui)
-    Frame.Size = UDim2.new(0, 600, 0, 400)
-    Frame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    Frame.Size = UDim2.new(0, 700, 0, 500)
+    Frame.Position = UDim2.new(0.5, -350, 0.5, -250)
     Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Frame.BorderSizePixel = 2
     Frame.BorderColor3 = Color3.fromRGB(60, 60, 60)
     
     local Title = Instance.new("TextLabel", Frame)
-    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.Size = UDim2.new(1, 0, 0, 50)
     Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     Title.Text = Name
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.Font = Enum.Font.SourceSansBold
-    Title.TextSize = 22
+    Title.TextSize = 24
     
     local Sidebar = Instance.new("Frame", Frame)
-    Sidebar.Size = UDim2.new(0, 120, 1, -40)
-    Sidebar.Position = UDim2.new(0, 0, 0, 40)
+    Sidebar.Size = UDim2.new(0, 150, 1, -50)
+    Sidebar.Position = UDim2.new(0, 0, 0, 50)
     Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     
     local SidebarLayout = Instance.new("UIListLayout", Sidebar)
@@ -66,8 +66,8 @@ function Lib:Window(Name)
     SidebarLayout.Padding = UDim.new(0, 5)
     
     local SectionHolder = Instance.new("Frame", Frame)
-    SectionHolder.Size = UDim2.new(1, -130, 1, -50)
-    SectionHolder.Position = UDim2.new(0, 125, 0, 45)
+    SectionHolder.Size = UDim2.new(1, -160, 1, -60)
+    SectionHolder.Position = UDim2.new(0, 155, 0, 55)
     SectionHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     SectionHolder.BorderSizePixel = 1
     SectionHolder.BorderColor3 = Color3.fromRGB(50, 50, 50)
@@ -75,7 +75,7 @@ function Lib:Window(Name)
     
     local SectionLayout = Instance.new("UIListLayout", SectionHolder)
     SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SectionLayout.Padding = UDim.new(0, 5)
+    SectionLayout.Padding = UDim.new(0, 10)
     
     Window.Frame = Frame
     Window.SectionHolder = SectionHolder
@@ -86,12 +86,12 @@ function Lib:Window(Name)
         local Tab = {}
         
         local TabButton = Instance.new("TextButton", Sidebar)
-        TabButton.Size = UDim2.new(1, -10, 0, 30)
-        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        TabButton.Size = UDim2.new(1, -10, 0, 40)
+        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         TabButton.Text = Name
         TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         TabButton.Font = Enum.Font.SourceSansBold
-        TabButton.TextSize = 18
+        TabButton.TextSize = 20
         
         local TabFrame = Instance.new("Frame", SectionHolder)
         TabFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -114,18 +114,18 @@ function Lib:Window(Name)
             local Section = {}
             
             local SectionFrame = Instance.new("Frame", TabFrame)
-            SectionFrame.Size = UDim2.new(1, -10, 0, 80)
-            SectionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            SectionFrame.Size = UDim2.new(1, -10, 0, 100)
+            SectionFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
             SectionFrame.BorderSizePixel = 1
-            SectionFrame.BorderColor3 = Color3.fromRGB(70, 70, 70)
+            SectionFrame.BorderColor3 = Color3.fromRGB(80, 80, 80)
             
             local SectionTitle = Instance.new("TextLabel", SectionFrame)
-            SectionTitle.Size = UDim2.new(1, 0, 0, 25)
+            SectionTitle.Size = UDim2.new(1, 0, 0, 30)
             SectionTitle.BackgroundTransparency = 1
             SectionTitle.Text = Name
             SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
             SectionTitle.Font = Enum.Font.SourceSansBold
-            SectionTitle.TextSize = 18
+            SectionTitle.TextSize = 20
             
             Section.Frame = SectionFrame
             return Section
