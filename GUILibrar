@@ -38,25 +38,59 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
     Usable = true
 end)
 
-
-
 function Lib:Window(Name)
     local Window = {}
     
     local Frame = Instance.new("Frame", ScriptGui)
-    local Title = Instance.new("TextLabel", Frame)
     Frame.Size = UDim2.new(0, 400, 0, 300)
     Frame.Position = UDim2.new(0.5, -200, 0.5, -150)
     Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Frame.BorderSizePixel = 2
     Frame.BorderColor3 = Color3.fromRGB(60, 60, 60)
-
+    
+    local Title = Instance.new("TextLabel", Frame)
     Title.Size = UDim2.new(1, 0, 0, 30)
     Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     Title.Text = Name
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.Font = Enum.Font.SourceSansBold
     Title.TextSize = 20
+    
+    local SectionHolder = Instance.new("Frame", Frame)
+    SectionHolder.Size = UDim2.new(1, -10, 1, -40)
+    SectionHolder.Position = UDim2.new(0, 5, 0, 35)
+    SectionHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    SectionHolder.BorderSizePixel = 1
+    SectionHolder.BorderColor3 = Color3.fromRGB(50, 50, 50)
+    SectionHolder.ClipsDescendants = true
+    
+    local UIListLayout = Instance.new("UIListLayout", SectionHolder)
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.Padding = UDim.new(0, 5)
+    
+    Window.Frame = Frame
+    Window.SectionHolder = SectionHolder
+    
+    function Window:Section(Name)
+        local Section = {}
+        
+        local SectionFrame = Instance.new("Frame", SectionHolder)
+        SectionFrame.Size = UDim2.new(1, -10, 0, 50)
+        SectionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        SectionFrame.BorderSizePixel = 1
+        SectionFrame.BorderColor3 = Color3.fromRGB(70, 70, 70)
+        
+        local SectionTitle = Instance.new("TextLabel", SectionFrame)
+        SectionTitle.Size = UDim2.new(1, 0, 0, 20)
+        SectionTitle.BackgroundTransparency = 1
+        SectionTitle.Text = Name
+        SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SectionTitle.Font = Enum.Font.SourceSansBold
+        SectionTitle.TextSize = 18
+        
+        Section.Frame = SectionFrame
+        return Section
+    end
     
     return Window
 end
