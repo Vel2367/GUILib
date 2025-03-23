@@ -48,7 +48,9 @@ function Lib:Window(Name)
     Frame.BorderSizePixel = 0
     Frame.BackgroundTransparency = 0.1
     Frame.ClipsDescendants = true
-    Frame:SetAttribute("Corner", Instance.new("UICorner", Frame)).CornerRadius = UDim.new(0, 20)
+    local UICorner = Instance.new("UICorner", Frame)
+    UICorner.CornerRadius = UDim.new(0, 20)
+
 
     local Title = Instance.new("TextLabel", Frame)
     Title.Size = UDim2.new(1, 0, 0, 50)
@@ -57,7 +59,9 @@ function Lib:Window(Name)
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 24
-    Title:SetAttribute("Corner", Instance.new("UICorner", Title)).CornerRadius = UDim.new(0, 20)
+    local UICorner = Instance.new("UICorner", Title)
+    UICorner.CornerRadius = UDim.new(0, 20)
+
 
     local Sidebar = Instance.new("Frame", Frame)
     Sidebar.Size = UDim2.new(0, 160, 1, -50)
