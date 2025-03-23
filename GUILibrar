@@ -98,6 +98,10 @@ function Lib:Window(Name)
         TabFrame.BackgroundTransparency = 1
         TabFrame.Visible = false
         
+        local TabLayout = Instance.new("UIListLayout", TabFrame)
+        TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        TabLayout.Padding = UDim.new(0, 5)
+        
         TabButton.MouseButton1Click:Connect(function()
             for _, sec in pairs(SectionHolder:GetChildren()) do
                 if sec:IsA("Frame") then
