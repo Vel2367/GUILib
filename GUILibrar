@@ -57,46 +57,81 @@ function Lib:Window(Name)
     Title.TextSize = 22
     
     local Sidebar = Instance.new("Frame", Frame)
-    Sidebar.Size = UDim2.new(0, 50, 1, -40)
+    Sidebar.Size = UDim2.new(0, 120, 1, -40)
     Sidebar.Position = UDim2.new(0, 0, 0, 40)
     Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     
+    local SidebarLayout = Instance.new("UIListLayout", Sidebar)
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Padding = UDim.new(0, 5)
+    
     local SectionHolder = Instance.new("Frame", Frame)
-    SectionHolder.Size = UDim2.new(1, -60, 1, -50)
-    SectionHolder.Position = UDim2.new(0, 55, 0, 45)
+    SectionHolder.Size = UDim2.new(1, -130, 1, -50)
+    SectionHolder.Position = UDim2.new(0, 125, 0, 45)
     SectionHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     SectionHolder.BorderSizePixel = 1
     SectionHolder.BorderColor3 = Color3.fromRGB(50, 50, 50)
     SectionHolder.ClipsDescendants = true
     
-    local UIListLayout = Instance.new("UIListLayout", SectionHolder)
-    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    UIListLayout.Padding = UDim.new(0, 5)
-    UIListLayout.FillDirection = Enum.FillDirection.Vertical
-    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    local SectionLayout = Instance.new("UIListLayout", SectionHolder)
+    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SectionLayout.Padding = UDim.new(0, 5)
     
     Window.Frame = Frame
     Window.SectionHolder = SectionHolder
+    Window.Sidebar = Sidebar
+    Window.Sections = {}
     
-    function Window:Section(Name)
-        local Section = {}
+    function Window:CreateTab(Name)
+        local Tab = {}
         
-        local SectionFrame = Instance.new("Frame", SectionHolder)
-        SectionFrame.Size = UDim2.new(1, -10, 0, 80)
-        SectionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        SectionFrame.BorderSizePixel = 1
-        SectionFrame.BorderColor3 = Color3.fromRGB(70, 70, 70)
+        local TabButton = Instance.new("TextButton", Sidebar)
+        TabButton.Size = UDim2.new(1, -10, 0, 30)
+        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        TabButton.Text = Name
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.Font = Enum.Font.SourceSansBold
+        TabButton.TextSize = 18
         
-        local SectionTitle = Instance.new("TextLabel", SectionFrame)
-        SectionTitle.Size = UDim2.new(1, 0, 0, 25)
-        SectionTitle.BackgroundTransparency = 1
-        SectionTitle.Text = Name
-        SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        SectionTitle.Font = Enum.Font.SourceSansBold
-        SectionTitle.TextSize = 18
+        local TabFrame = Instance.new("Frame", SectionHolder)
+        TabFrame.Size = UDim2.new(1, 0, 1, 0)
+        TabFrame.BackgroundTransparency = 1
+        TabFrame.Visible = false
         
-        Section.Frame = SectionFrame
-        return Section
+        TabButton.MouseButton1Click:Connect(function()
+            for _, sec in pairs(SectionHolder:GetChildren()) do
+                if sec:IsA("Frame") then
+                    sec.Visible = false
+                end
+            end
+            TabFrame.Visible = true
+        end)
+        
+        Tab.Frame = TabFrame
+        Window.Sections[Name] = TabFrame
+        
+        function Tab:Section(Name)
+            local Section = {}
+            
+            local SectionFrame = Instance.new("Frame", TabFrame)
+            SectionFrame.Size = UDim2.new(1, -10, 0, 80)
+            SectionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            SectionFrame.BorderSizePixel = 1
+            SectionFrame.BorderColor3 = Color3.fromRGB(70, 70, 70)
+            
+            local SectionTitle = Instance.new("TextLabel", SectionFrame)
+            SectionTitle.Size = UDim2.new(1, 0, 0, 25)
+            SectionTitle.BackgroundTransparency = 1
+            SectionTitle.Text = Name
+            SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SectionTitle.Font = Enum.Font.SourceSansBold
+            SectionTitle.TextSize = 18
+            
+            Section.Frame = SectionFrame
+            return Section
+        end
+        
+        return Tab
     end
     
     return Window
