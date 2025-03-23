@@ -44,35 +44,38 @@ function Lib:Window(Name)
     local Frame = Instance.new("Frame", ScriptGui)
     Frame.Size = UDim2.new(0, 700, 0, 500)
     Frame.Position = UDim2.new(0.5, -350, 0.5, -250)
-    Frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)  -- Updated background color
-    Frame.BorderSizePixel = 0  -- Remove border
-    Frame.BackgroundTransparency = 0.2
-    
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.BorderSizePixel = 0
+    Frame.BackgroundTransparency = 0.1
+    Frame.ClipsDescendants = true
+    Frame:SetAttribute("Corner", Instance.new("UICorner", Frame)).CornerRadius = UDim.new(0, 20)
+
     local Title = Instance.new("TextLabel", Frame)
     Title.Size = UDim2.new(1, 0, 0, 50)
-    Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)  -- Darker background for title
+    Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     Title.Text = Name
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 24
-    
+    Title:SetAttribute("Corner", Instance.new("UICorner", Title)).CornerRadius = UDim.new(0, 20)
+
     local Sidebar = Instance.new("Frame", Frame)
     Sidebar.Size = UDim2.new(0, 160, 1, -50)
     Sidebar.Position = UDim2.new(0, 0, 0, 50)
-    Sidebar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)  -- Dark sidebar
+    Sidebar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     Sidebar.BorderSizePixel = 0
-    
+
     local SidebarLayout = Instance.new("UIListLayout", Sidebar)
     SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
     SidebarLayout.Padding = UDim.new(0, 5)
-    
+
     local SectionHolder = Instance.new("Frame", Frame)
     SectionHolder.Size = UDim2.new(1, -170, 1, -60)
     SectionHolder.Position = UDim2.new(0, 170, 0, 55)
-    SectionHolder.BackgroundColor3 = Color3.fromRGB(50, 50, 50)  -- Lighter section holder
+    SectionHolder.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     SectionHolder.BorderSizePixel = 0
     SectionHolder.ClipsDescendants = true
-    
+
     local SectionLayout = Instance.new("UIListLayout", SectionHolder)
     SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
     SectionLayout.Padding = UDim.new(0, 10)
@@ -81,19 +84,18 @@ function Lib:Window(Name)
     Window.SectionHolder = SectionHolder
     Window.Sidebar = Sidebar
     Window.Sections = {}
-    
+
     function Window:CreateTab(Name)
         local Tab = {}
         
         local TabButton = Instance.new("TextButton", Sidebar)
         TabButton.Size = UDim2.new(1, -10, 0, 40)
-        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)  -- Dark button background
+        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         TabButton.Text = Name
         TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         TabButton.Font = Enum.Font.GothamBold
         TabButton.TextSize = 20
-        TabButton.TextTransparency = 0.2  -- Slight transparency for better effect
-        
+
         local TabFrame = Instance.new("Frame", SectionHolder)
         TabFrame.Size = UDim2.new(1, 0, 1, 0)
         TabFrame.BackgroundTransparency = 1
@@ -102,7 +104,7 @@ function Lib:Window(Name)
         local TabLayout = Instance.new("UIListLayout", TabFrame)
         TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
         TabLayout.Padding = UDim.new(0, 5)
-        
+
         TabButton.MouseButton1Click:Connect(function()
             for _, sec in pairs(SectionHolder:GetChildren()) do
                 if sec:IsA("Frame") then
@@ -111,7 +113,7 @@ function Lib:Window(Name)
             end
             TabFrame.Visible = true
         end)
-        
+
         Tab.Frame = TabFrame
         Window.Sections[Name] = TabFrame
         
@@ -120,9 +122,9 @@ function Lib:Window(Name)
             
             local SectionFrame = Instance.new("Frame", TabFrame)
             SectionFrame.Size = UDim2.new(1, -10, 0, 100)
-            SectionFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)  -- Lighter section color
+            SectionFrame.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
             SectionFrame.BorderSizePixel = 0
-            
+
             local SectionTitle = Instance.new("TextLabel", SectionFrame)
             SectionTitle.Size = UDim2.new(1, 0, 0, 30)
             SectionTitle.BackgroundTransparency = 1
