@@ -9,13 +9,9 @@ local Minimized, MinimizeUsable, visible, Usable = false, true, true, true
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
 local function generateRandomName()
-    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    local randomName = ""
-    for i = 1, 10 do
-        randomName = randomName .. chars:sub(math.random(1, #chars), math.random(1, #chars))
-    end
-    return randomName
+    return "ScriptGui_" .. tostring(tick())
 end
+
 local randomName = generateRandomName()
 
 if game.CoreGui:FindFirstChild(randomName) then
@@ -38,18 +34,20 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
     Usable = true
 end)
 
-local function CreateTweenLine(object, properties, duration)
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true)
+local function CreateTween(object, properties, duration, repeatCount)
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, repeatCount or -1, true)
     local tween = TS:Create(object, tweenInfo, properties)
     tween:Play()
     return tween
 end
 
+
 function Lib:Window()
     local Window = {}
     local Main = Instance.new("Frame", ScriptGui)
     local MainStroke = Instance.new("UIStroke", Main)
-    local Line = Instance.new("Frame", Main)
+    local TitleFrame = Instance.new("Frame", Main)
+    local Line = Instance.new("Frame", TitleFrame)
     local LineGradient = Instance.new("UIGradient", Line)
 
     Main.Size = UDim2.new(0,900,0,600)
@@ -59,6 +57,11 @@ function Lib:Window()
 
     MainStroke.Color = Color3.fromRGB(110,110,110)
     MainStroke.Thickness = 3
+
+    TitleFrame.Position = UDim2.new(0,0,0,0)
+    TitleFrame.Size = UDim2.new(1,0,0.15,0)
+    TitleFrame.Active = true
+    TitleFrame.BackgroundTransparency = 1
 
     Line.Size = UDim2.new(0.9998,0,0,3)
     Line.Position = UDim2.new(0,0,0,0)
@@ -74,7 +77,7 @@ function Lib:Window()
         ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211))
     }
-    CreateTweenLine(LineGradient, {}, 4)
+    CreateTween(LineGradient, {}, 4)
 
     local function MakeDraggable(frame, handle)
         local dragging, dragStart, startPos
