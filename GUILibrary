@@ -38,8 +38,72 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
     Usable = true
 end)
 
+local function CreateTweenLine(object, properties, duration)
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true)
+    local tween = TS:Create(object, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
 function Lib:Window()
     local Window = {}
+    local Main = Instance.new("Frame", ScriptGui)
+    local MainStroke = Instance.new("UIStroke", Main)
+    local Line = Instance.new("Frame", Main)
+    local LineGradient = Instance.new("UIGradient", Line)
+
+    Main.Size = UDim2.new(0,900,0,600)
+    Main.Position = UDim2.new(0.5,-450,0.5,-300)
+    Main.Active = true
+    Main.BackgroundColor3 = Color3.fromRGB(45,45,45)
+
+    MainStroke.Color = Color3.fromRGB(110,110,110)
+    MainStroke.Thickness = 3
+
+    Line.Size = UDim2.new(0.9998,0,0,3)
+    Line.Position = UDim2.new(0,0,0,0)
+    Line.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+
+    LineGradient.Rotation = 0
+    LineGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+        ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 165, 0)),
+        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 0)),
+        ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
+        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211))
+    }
+    CreateTweenLine(LineGradient, { Rotation = 360 }, 4)
+
+    local function MakeDraggable(frame, handle)
+        local dragging, dragStart, startPos
+
+        handle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+            end
+        end)
+
+        handle.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+
+        Uis.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(
+                    startPos.X.Scale, startPos.X.Offset + delta.X,
+                    startPos.Y.Scale, startPos.Y.Offset + delta.Y
+                )
+            end
+        end)
+    end
+    MakeDraggable(Main, Line)
 
     return Window
 end
