@@ -106,7 +106,7 @@ function Lib:Window()
             end
         end)
     end
-    MakeDraggable(Main, Line)
+    MakeDraggable(Main, TitleFrame)
 
     return Window
 end
