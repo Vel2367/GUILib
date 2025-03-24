@@ -39,8 +39,21 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
 end)
 
 function Lib:Window(Name)
-    local Window = {}
-    
+    local Window = Instance.new("Frame")
+    Window.Size = UDim2.new(0.4, 0, 0.6, 0)
+    Window.Position = UDim2.new(0.3, 0, 0.2, 0)
+    Window.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Window.BorderSizePixel = 0
+    Window.Parent = ScriptGui
+
+    local Header = Instance.new("TextLabel")
+    Header.Size = UDim2.new(1, 0, 0.1, 0)
+    Header.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Header.Text = Name
+    Header.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Header.Font = Enum.Font.SourceSansBold
+    Header.TextSize = 18
+    Header.Parent = Window
 
     return Window
 end
