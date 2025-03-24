@@ -53,30 +53,33 @@ function Lib:Window()
     TopBar.BorderSizePixel = 0
     TopBar.Parent = Window
 
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Size = UDim2.new(0.15, 0, 0.98, 0)
+    Sidebar.Position = UDim2.new(0, 0, 0.02, 0)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = Window
+
     local SectionHolder = Instance.new("Frame")
-    SectionHolder.Size = UDim2.new(1, 0, 0.98, 0)
-    SectionHolder.Position = UDim2.new(0, 0, 0.02, 0)
+    SectionHolder.Size = UDim2.new(0.85, 0, 0.98, 0)
+    SectionHolder.Position = UDim2.new(0.15, 0, 0.02, 0)
     SectionHolder.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     SectionHolder.BorderSizePixel = 0
     SectionHolder.Parent = Window
 
-    function Lib:CreateSection(Name)
-        local Section = Instance.new("Frame")
-        Section.Size = UDim2.new(0.48, 0, 0.45, 0)
-        Section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        Section.BorderSizePixel = 0
-        Section.Parent = SectionHolder
+    function Lib:CreateSectionButton(Name, Callback)
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(1, 0, 0.1, 0)
+        Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        Button.Text = Name
+        Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Button.Font = Enum.Font.SourceSansBold
+        Button.TextSize = 14
+        Button.Parent = Sidebar
 
-        local SectionTitle = Instance.new("TextLabel")
-        SectionTitle.Size = UDim2.new(1, 0, 0.1, 0)
-        SectionTitle.BackgroundTransparency = 1
-        SectionTitle.Text = Name
-        SectionTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-        SectionTitle.Font = Enum.Font.SourceSansBold
-        SectionTitle.TextSize = 16
-        SectionTitle.Parent = Section
-
-        return Section
+        Button.MouseButton1Click:Connect(function()
+            Callback()
+        end)
     end
 
     return Window
