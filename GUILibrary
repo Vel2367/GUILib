@@ -8,7 +8,15 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local Minimized, MinimizeUsable, visible, Usable = false, true, true, true
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
-local randomName = tostring(tick())
+local function generateRandomName()
+    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    local randomName = ""
+    for i = 1, 10 do
+        randomName = randomName .. chars:sub(math.random(1, #chars), math.random(1, #chars))
+    end
+    return randomName
+end
+local randomName = generateRandomName()
 
 if game.CoreGui:FindFirstChild(randomName) then
     game.CoreGui[randomName]:Destroy()
@@ -30,7 +38,7 @@ Uis.InputBegan:Connect(function(input, gameProcesses)
     Usable = true
 end)
 
-local function CreateTween(object, properties, duration)
+local function CreateTweenLine(object, properties, duration)
     local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true)
     local tween = TS:Create(object, tweenInfo, properties)
     tween:Play()
@@ -66,7 +74,7 @@ function Lib:Window()
         ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211))
     }
-    CreateTween(LineGradient, { Rotation = 360 }, 4)
+    CreateTweenLine(LineGradient, {}, 4)
 
     local function MakeDraggable(frame, handle)
         local dragging, dragStart, startPos
