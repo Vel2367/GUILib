@@ -42,9 +42,11 @@ local function CreateTween(object, properties, duration, repeatCount)
 end
 
 
+
 function Lib:Window()
     local Window = {}
     local Sections = {}
+    local ActiveButton = nil
 
     local Main = Instance.new("Frame", ScriptGui)
     local MainStroke = Instance.new("UIStroke", Main)
@@ -119,18 +121,19 @@ function Lib:Window()
             end
         end)
     end
-    MakeDraggable(Main, Line)
+    MakeDraggable(Main, TitleFrame)
 
     local function createSectionButton(name)
         local button = Instance.new("TextButton", SectionHolder)
-        button.Size = UDim2.new(1, 0, 0, 30)
-        button.BackgroundTransparency = 1
+        button.Size = UDim2.new(1, 0, 0, 40)
+        button.BackgroundTransparency = 0.2
+        button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         button.Text = name
-        button.TextSize = 16
-        button.TextColor3 = Color3.fromRGB(200, 200, 200)
-        button.Font = Enum.Font.SourceSans
-        button.TextXAlignment = Enum.TextXAlignment.Left
-        
+        button.TextSize = 18
+        button.TextColor3 = Color3.fromRGB(220, 220, 220)
+        button.Font = Enum.Font.SourceSansBold
+        button.TextXAlignment = Enum.TextXAlignment.Center
+
         button.MouseButton1Click:Connect(function()
             for _, v in pairs(ContentFrame:GetChildren()) do
                 v.Visible = false
@@ -138,6 +141,12 @@ function Lib:Window()
             if Sections[name] then
                 Sections[name].Visible = true
             end
+            
+            if ActiveButton then
+                ActiveButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            end
+            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            ActiveButton = button
         end)
 
         return button
