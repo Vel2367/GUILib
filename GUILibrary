@@ -44,11 +44,15 @@ end
 
 function Lib:Window()
     local Window = {}
+    local Sections = {}
+
     local Main = Instance.new("Frame", ScriptGui)
     local MainStroke = Instance.new("UIStroke", Main)
     local TitleFrame = Instance.new("Frame", Main)
     local Line = Instance.new("Frame", TitleFrame)
     local LineGradient = Instance.new("UIGradient", Line)
+    local SectionHolder = Instance.new("ScrollingFrame", Main)
+    local ContentFrame = Instance.new("Frame", Main)
 
     Main.Size = UDim2.new(0,900,0,600)
     Main.Position = UDim2.new(0.5,-450,0.5,-300)
@@ -79,6 +83,15 @@ function Lib:Window()
     }
     CreateTween(LineGradient, {}, 4)
 
+    SectionHolder.Size = UDim2.new(0.15,0,0.85,0)
+    SectionHolder.Position = UDim2.new(0,0,0.15,0)
+    SectionHolder.ScrollBarThickness = 0
+    SectionHolder.BackgroundTransparency = 1
+
+    ContentFrame.Size = UDim2.new(0.85, 0, 0.85, 0)
+    ContentFrame.Position = UDim2.new(0.15, 0, 0.15, 0)
+    ContentFrame.BackgroundTransparency = 1
+
     local function MakeDraggable(frame, handle)
         local dragging, dragStart, startPos
 
@@ -106,7 +119,39 @@ function Lib:Window()
             end
         end)
     end
-    MakeDraggable(Main, TitleFrame)
+    MakeDraggable(Main, Line)
+
+    local function createSectionButton(name)
+        local button = Instance.new("TextButton", SectionHolder)
+        button.Size = UDim2.new(1, 0, 0, 30)
+        button.BackgroundTransparency = 1
+        button.Text = name
+        button.TextSize = 16
+        button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        button.Font = Enum.Font.SourceSans
+        button.TextXAlignment = Enum.TextXAlignment.Left
+        
+        button.MouseButton1Click:Connect(function()
+            for _, v in pairs(ContentFrame:GetChildren()) do
+                v.Visible = false
+            end
+            if Sections[name] then
+                Sections[name].Visible = true
+            end
+        end)
+
+        return button
+    end
+
+    function Window:Section(Name)
+        local Section = Instance.new("Frame", ContentFrame)
+        Section.Size = UDim2.new(1, 0, 1, 0)
+        Section.BackgroundTransparency = 1
+        Section.Visible = false
+        Sections[Name] = Section
+        createSectionButton(Name)
+        return Section
+    end
 
     return Window
 end
