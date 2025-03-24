@@ -67,7 +67,19 @@ function Lib:Window()
     SectionHolder.BorderSizePixel = 0
     SectionHolder.Parent = Window
 
-    function Lib:CreateSectionButton(Name, Callback)
+    local Sections = {}
+
+    function Lib:CreateSection(Name)
+        local Section = Instance.new("Frame")
+        Section.Size = UDim2.new(1, 0, 1, 0)
+        Section.BackgroundTransparency = 1
+        Section.Visible = false
+        Section.Parent = SectionHolder
+        Sections[Name] = Section
+        return Section
+    end
+
+    function Lib:CreateSectionButton(Name)
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(1, 0, 0.1, 0)
         Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -78,7 +90,9 @@ function Lib:Window()
         Button.Parent = Sidebar
 
         Button.MouseButton1Click:Connect(function()
-            Callback()
+            for secName, sec in pairs(Sections) do
+                sec.Visible = (secName == Name)
+            end
         end)
     end
 
