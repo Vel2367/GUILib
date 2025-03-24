@@ -47,6 +47,7 @@ function Lib:Window()
     local Window = {}
     local Sections = {}
     local ActiveButton = nil
+    local ActiveLine = nil
 
     local Main = Instance.new("Frame", ScriptGui)
     local MainStroke = Instance.new("UIStroke", Main)
@@ -55,6 +56,7 @@ function Lib:Window()
     local LineGradient = Instance.new("UIGradient", Line)
     local SectionHolder = Instance.new("ScrollingFrame", Main)
     local ContentFrame = Instance.new("Frame", Main)
+    local SectionHolderLayout = Instance.new("UIListLayout", SectionHolder)
 
     Main.Size = UDim2.new(0,900,0,600)
     Main.Position = UDim2.new(0.5,-450,0.5,-300)
@@ -89,6 +91,8 @@ function Lib:Window()
     SectionHolder.Position = UDim2.new(0,0,0.15,0)
     SectionHolder.ScrollBarThickness = 0
     SectionHolder.BackgroundTransparency = 1
+
+    SectionHolderLayout.Padding = UDim.new(0, 5)
 
     ContentFrame.Size = UDim2.new(0.85, 0, 0.85, 0)
     ContentFrame.Position = UDim2.new(0.15, 0, 0.15, 0)
@@ -125,6 +129,8 @@ function Lib:Window()
 
     local function createSectionButton(name)
         local button = Instance.new("TextButton", SectionHolder)
+        local line = Instance.new("Frame", button)
+
         button.Size = UDim2.new(1, 0, 0, 40)
         button.BackgroundTransparency = 0.2
         button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -134,6 +140,11 @@ function Lib:Window()
         button.Font = Enum.Font.SourceSansBold
         button.TextXAlignment = Enum.TextXAlignment.Center
 
+        line.Size = UDim2.new(0, 3, 1, 0)
+        line.Position = UDim2.new(0, 0, 0, 0)
+        line.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        line.Visible = false
+
         button.MouseButton1Click:Connect(function()
             for _, v in pairs(ContentFrame:GetChildren()) do
                 v.Visible = false
@@ -141,12 +152,16 @@ function Lib:Window()
             if Sections[name] then
                 Sections[name].Visible = true
             end
-            
-            if ActiveButton then
+            if ActiveLine then
+                ActiveLine.Visible = false
                 ActiveButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                ActiveButton.TextColor3 = Color3.fromRGB(220, 220, 220)
             end
-            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            line.Visible = true
+            ActiveLine = line
             ActiveButton = button
+            button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            button.TextColor3 = line.BackgroundColor3
         end)
 
         return button
@@ -154,6 +169,7 @@ function Lib:Window()
 
     function Window:Section(Name)
         local Section = Instance.new("Frame", ContentFrame)
+        
         Section.Size = UDim2.new(1, 0, 1, 0)
         Section.BackgroundTransparency = 1
         Section.Visible = false
