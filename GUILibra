@@ -136,11 +136,19 @@ function Lib:Window()
 
     function Window:Section(Name)
         Sections[Name] = Instance.new("Frame", ContentFrame)
-        Sections[Name].Size = UDim2.new(1, 0, 1, 0)
-        Sections[Name].BackgroundTransparency = 1
-
+        local SectionStroke = Instance.new("UIStroke", Sections[Name])
         local button = Instance.new("TextButton", SectionHolder)
         local line = Instance.new("Frame", button)
+
+        Sections[Name].Size = UDim2.new(0.97, 0, 0.97, 0)
+        Sections[Name].BackgroundTransparency = 0
+        Sections[Name].Visible = false
+        Sections[Name].BackgroundColor3 = Color3.fromRGB(35,35,35)
+        Sections[Name].BorderSizePixel = 4
+        Sections[Name].BorderColor3 = Color3.fromRGB(0,0,0)
+        
+        SectionStroke.Color = Color3.fromRGB(40,40,40)
+        SectionStroke.Thickness = 3
 
         button.Size = UDim2.new(1, 0, 0, 50)
         button.BackgroundTransparency = 0.2
