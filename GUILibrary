@@ -18,9 +18,10 @@ if game.CoreGui:FindFirstChild(randomName) then
     game.CoreGui[randomName]:Destroy()
 end
 
-local ScriptGui = Instance.new("ScreenGui", game.CoreGui)
+local ScriptGui = Instance.new("ScreenGui")
 ScriptGui.Name = randomName
 ScriptGui.ResetOnSpawn = false
+ScriptGui.Parent = game.CoreGui
 
 Uis.InputBegan:Connect(function(input, gameProcesses)
     if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
@@ -40,7 +41,6 @@ local function CreateTween(object, properties, duration, repeatCount)
     tween:Play()
     return tween
 end
-
 
 function Lib:Window()
     local Window = {}
@@ -84,7 +84,7 @@ function Lib:Window()
         ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211))
     }
-    CreateTween(LineGradient, {}, 4)
+    CreateTween(LineGradient, { Rotation = 360 }, 4)
 
     SectionHolder.Size = UDim2.new(0.15,0,0.85,0)
     SectionHolder.Position = UDim2.new(0.025,0,0.15,0)
@@ -126,14 +126,18 @@ function Lib:Window()
     end
     MakeDraggable(Main, TitleFrame)
 
-    local function createSectionButton(name)
+    function Window:Section(Name)
+        Sections[Name] = Instance.new("Frame", ContentFrame)
+        Sections[Name].Size = UDim2.new(1, 0, 1, 0)
+        Sections[Name].BackgroundTransparency = 1
+
         local button = Instance.new("TextButton", SectionHolder)
         local line = Instance.new("Frame", button)
 
         button.Size = UDim2.new(1, 0, 0, 50)
         button.BackgroundTransparency = 0.2
         button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        button.Text = name
+        button.Text = Name
         button.TextSize = 20
         button.TextColor3 = Color3.fromRGB(180, 180, 180)
         button.Font = Enum.Font.SourceSansBold
@@ -144,15 +148,11 @@ function Lib:Window()
         line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
         line.Visible = false
 
-        SectionHolderLayout.Padding = UDim.new(0, 10)
-
         button.MouseButton1Click:Connect(function()
             for _, v in pairs(ContentFrame:GetChildren()) do
                 v.Visible = false
             end
-            if Sections[name] then
-                Sections[name].Visible = true
-            end
+            Sections[Name].Visible = true
             if ActiveLine then
                 ActiveLine.Visible = false
                 ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
@@ -161,20 +161,11 @@ function Lib:Window()
             line.Visible = true
             ActiveLine = line
             ActiveButton = button
-            button.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
+            button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
-
-        return button
     end
     
-
-    function Window:Section(Name)
-        
-
-
-    end
-
     return Window
 end
 
