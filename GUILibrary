@@ -127,47 +127,48 @@ function Lib:Window()
     end
     MakeDraggable(Main, TitleFrame)
 
-local function createSectionButton(name)
-    local button = Instance.new("TextButton", SectionHolder)
-    local line = Instance.new("Frame", button)
-
-    button.Size = UDim2.new(1, 0, 0, 50)
-    button.BackgroundTransparency = 0.2
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.Text = name
-    button.TextSize = 20
-    button.TextColor3 = Color3.fromRGB(180, 180, 180)
-    button.Font = Enum.Font.SourceSansBold
-    button.TextXAlignment = Enum.TextXAlignment.Center
-
-    line.Size = UDim2.new(0, 4, 1, 0)
-    line.Position = UDim2.new(0, 0, 0, 0)
-    line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-    line.Visible = false
-
-    SectionHolderLayout.Padding = UDim.new(0, 10)
-
-    button.MouseButton1Click:Connect(function()
-        for _, v in pairs(ContentFrame:GetChildren()) do
-            v.Visible = false
-        end
-        if Sections[name] then
-            Sections[name].Visible = true
-        end
-        if ActiveLine then
-            ActiveLine.Visible = false
-            ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            ActiveButton.TextColor3 = Color3.fromRGB(180, 180, 180)
-        end
-        line.Visible = true
-        ActiveLine = line
-        ActiveButton = button
-        button.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end)
-
-    return button
-end
+    local function createSectionButton(name)
+        local button = Instance.new("TextButton", SectionHolder)
+        local line = Instance.new("Frame", button)
+    
+        button.Size = UDim2.new(0.9, 0, 0, 50)
+        button.Position = UDim2.new(0.1, 0, 0, 0)
+        button.BackgroundTransparency = 0.2
+        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        button.Text = name
+        button.TextSize = 20 -- Немного увеличен размер текста
+        button.TextColor3 = Color3.fromRGB(180, 180, 180)
+        button.Font = Enum.Font.SourceSansBold
+        button.TextXAlignment = Enum.TextXAlignment.Center
+    
+        line.Size = UDim2.new(0, 4, 1, 0)
+        line.Position = UDim2.new(-0.1, 0, 0, 0)
+        line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        line.Visible = false
+    
+        SectionHolderLayout.Padding = UDim.new(0, 10)
+    
+        button.MouseButton1Click:Connect(function()
+            for _, v in pairs(ContentFrame:GetChildren()) do
+                v.Visible = false
+            end
+            if Sections[name] then
+                Sections[name].Visible = true
+            end
+            if ActiveLine then
+                ActiveLine.Visible = false
+                ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                ActiveButton.TextColor3 = Color3.fromRGB(180, 180, 180)
+            end
+            line.Visible = true
+            ActiveLine = line
+            ActiveButton = button
+            button.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
+            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end)
+    
+        return button
+    end
 
 
     function Window:Section(Name)
