@@ -88,14 +88,14 @@ function Lib:Window()
     CreateTween(LineGradient, {}, 4)
 
     SectionHolder.Size = UDim2.new(0.15,0,0.85,0)
-    SectionHolder.Position = UDim2.new(0,0,0.15,0)
+    SectionHolder.Position = UDim2.new(0.025,0,0.15,0)
     SectionHolder.ScrollBarThickness = 0
     SectionHolder.BackgroundTransparency = 1
 
     SectionHolderLayout.Padding = UDim.new(0, 5)
 
-    ContentFrame.Size = UDim2.new(0.85, 0, 0.85, 0)
-    ContentFrame.Position = UDim2.new(0.15, 0, 0.15, 0)
+    ContentFrame.Size = UDim2.new(0.8, 0, 0.85, 0)
+    ContentFrame.Position = UDim2.new(0.2, 0, 0.15, 0)
     ContentFrame.BackgroundTransparency = 1
 
     local function MakeDraggable(frame, handle)
@@ -127,57 +127,92 @@ function Lib:Window()
     end
     MakeDraggable(Main, TitleFrame)
 
-local function createSectionButton(name)
-    local button = Instance.new("TextButton", SectionHolder)
-    local line = Instance.new("Frame", button)
+    local function createSectionButton(name)
+        local button = Instance.new("TextButton", SectionHolder)
+        local line = Instance.new("Frame", button)
 
-    button.Size = UDim2.new(1, 0, 0, 50)
-    button.BackgroundTransparency = 0.2
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.Text = name
-    button.TextSize = 20
-    button.TextColor3 = Color3.fromRGB(180, 180, 180)
-    button.Font = Enum.Font.SourceSansBold
-    button.TextXAlignment = Enum.TextXAlignment.Center
+        button.Size = UDim2.new(1, 0, 0, 50)
+        button.BackgroundTransparency = 0.2
+        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        button.Text = name
+        button.TextSize = 20
+        button.TextColor3 = Color3.fromRGB(180, 180, 180)
+        button.Font = Enum.Font.SourceSansBold
+        button.TextXAlignment = Enum.TextXAlignment.Center
 
-    line.Size = UDim2.new(0, 4, 1, 0)
-    line.Position = UDim2.new(0, 0, 0, 0)
-    line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-    line.Visible = false
+        line.Size = UDim2.new(0, 4, 1, 0)
+        line.Position = UDim2.new(0, 0, 0, 0)
+        line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        line.Visible = false
 
-    SectionHolderLayout.Padding = UDim.new(0, 10)
+        SectionHolderLayout.Padding = UDim.new(0, 10)
 
-    button.MouseButton1Click:Connect(function()
-        for _, v in pairs(ContentFrame:GetChildren()) do
-            v.Visible = false
-        end
-        if Sections[name] then
-            Sections[name].Visible = true
-        end
-        if ActiveLine then
-            ActiveLine.Visible = false
-            ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            ActiveButton.TextColor3 = Color3.fromRGB(180, 180, 180)
-        end
-        line.Visible = true
-        ActiveLine = line
-        ActiveButton = button
-        button.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end)
+        button.MouseButton1Click:Connect(function()
+            for _, v in pairs(ContentFrame:GetChildren()) do
+                v.Visible = false
+            end
+            if Sections[name] then
+                Sections[name].Visible = true
+            end
+            if ActiveLine then
+                ActiveLine.Visible = false
+                ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                ActiveButton.TextColor3 = Color3.fromRGB(180, 180, 180)
+            end
+            line.Visible = true
+            ActiveLine = line
+            ActiveButton = button
+            button.BackgroundColor3 = Color3.fromRGB(90, 20, 20)
+            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end)
 
-    return button
-end
-
+        return button
+    end
 
     function Window:Section(Name)
         local Section = Instance.new("Frame", ContentFrame)
-        
+        local FunctionHolder = Instance.new("ScrollingFrame", Section)
+        local Layout = Instance.new("UIListLayout", FunctionHolder)
+
         Section.Size = UDim2.new(1, 0, 1, 0)
         Section.BackgroundTransparency = 1
         Section.Visible = false
         Sections[Name] = Section
         createSectionButton(Name)
+
+        FunctionHolder.Size = UDim2.new(1, 0, 1, 0)
+        FunctionHolder.BackgroundTransparency = 1
+        FunctionHolder.ScrollBarThickness = 5
+        FunctionHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+        Layout.Padding = UDim.new(0, 5)
+
+        function Section:AddButton(name, callback)
+            callback = callback or function() end
+            local Button = Instance.new("TextButton", Section)
+            local UICorner = Instance.new("UICorner", Button)
+            
+            Button.Size = UDim2.new(1, -10, 0, 50)
+            Button.Position = UDim2.new(0, 5, 0, #Section:GetChildren() * 55)
+            Button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+            Button.Text = name
+            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Button.Font = Enum.Font.SourceSansBold
+            Button.TextSize = 20
+            
+            UICorner.CornerRadius = UDim.new(0, 6)
+            
+            Button.MouseEnter:Connect(function()
+                Button.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+            end)
+            
+            Button.MouseLeave:Connect(function()
+                Button.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+            end)
+            
+            Button.MouseButton1Click:Connect(callback)
+        end
+
         return Section
     end
 
