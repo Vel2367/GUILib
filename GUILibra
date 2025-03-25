@@ -46,19 +46,9 @@ function CreateRainbowWave(object)
         ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211))
     }
-    gradient.Offset = Vector2.new(0, 0)
     gradient.Rotation = 0
-
-    local function animateRainbow()
-        while true do
-            for i = 0, 1, 0.002 do
-                gradient.Offset = Vector2.new(i, 0)
-                task.wait(0.01)
-            end
-        end
-    end
-    task.spawn(animateRainbow)
 end
+
 
 function Lib:Window()
     local Window = {}
