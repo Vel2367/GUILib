@@ -144,9 +144,9 @@ function Lib:Window()
         button.TextXAlignment = Enum.TextXAlignment.Center
 
         line.Size = UDim2.new(0, 4, 1, 0)
-        line.Position = UDim2.new(0, 0, 0, 0)
-        line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-        line.Visible = false
+        line.Position = UDim2.new(1, -4, 0, 0)
+        line.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        line.Visible = true
 
         button.MouseButton1Click:Connect(function()
             for _, v in pairs(ContentFrame:GetChildren()) do
@@ -154,18 +154,21 @@ function Lib:Window()
             end
             Sections[Name].Visible = true
             if ActiveLine then
-                ActiveLine.Visible = false
+                ActiveLine.Position = UDim2.new(1, -4, 0, 0)
+                ActiveLine.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
                 ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
                 ActiveButton.TextColor3 = Color3.fromRGB(180, 180, 180)
             end
-            line.Visible = true
+            line.Position = UDim2.new(0, 0, 0, 0)
+            line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
             ActiveLine = line
             ActiveButton = button
             button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
     end
-    
+
+
     return Window
 end
 
