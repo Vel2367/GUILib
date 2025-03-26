@@ -191,11 +191,11 @@ function Lib:Window()
             Section.ClipsDescendants = true
             Section.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
 
-            SectionStroke.Color = Color3.fromRGB(80, 80, 80)
-            SectionStroke.Thickness = 2
+            SectionStroke.Color = Color3.fromRGB(100, 100, 100)
+            SectionStroke.Thickness = 1
 
             SectionLabel.Size = UDim2.new(0, 125, 0, 20)
-            SectionLabel.Position = UDim2.new(0, 15, 0, 10)
+            SectionLabel.Position = UDim2.new(0, 20, 0, 10)
             SectionLabel.Text = SectionName
             SectionLabel.TextSize = 16
             SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -206,6 +206,12 @@ function Lib:Window()
 
             Layout.Padding = UDim.new(0, 5)
             Layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+            function Section:SetSize(newWidth, newHeight)
+                self.Size = UDim2.new(0, newWidth, 0, newHeight)
+                self.CanvasSize = UDim2.new(0, newWidth, 0, newHeight)
+                self.ScrollBarThickness = (newHeight < self.CanvasSize.Y.Offset) and 6 or 0
+            end 
 
             return Section
         end
