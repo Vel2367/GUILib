@@ -252,7 +252,7 @@ function Lib:Window()
         ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
         ToggleButton.Size = UDim2.new(0, 20, 0, 20)
-        ToggleButton.Position = UDim2.new(0.8, 0, 0.15, 0)
+        ToggleButton.Position = UDim2.new(1, -30, 0.15, 0)
         ToggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         ToggleButton.Text = ""
         ToggleButton.AutoButtonColor = false
