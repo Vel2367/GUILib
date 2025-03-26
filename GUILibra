@@ -194,7 +194,7 @@ function Lib:Window()
             SectionStroke.Color = Color3.fromRGB(80, 80, 80)
             SectionStroke.Thickness = 2
 
-            SectionLabel.Size = UDim2.new(0, 100, 0, 20)
+            SectionLabel.Size = UDim2.new(0, 125, 0, 20)
             SectionLabel.Position = UDim2.new(0, 15, 0, 10)
             SectionLabel.Text = SectionName
             SectionLabel.TextSize = 16
