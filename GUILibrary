@@ -195,9 +195,9 @@ function Lib:Window()
             SectionStroke.Thickness = 2
 
             SectionLabel.Size = UDim2.new(0, 100, 0, 20)
-            SectionLabel.Position = UDim2.new(0, 10, 0, 10)
+            SectionLabel.Position = UDim2.new(0, 15, 0, 10)
             SectionLabel.Text = SectionName
-            SectionLabel.TextSize = 14
+            SectionLabel.TextSize = 16
             SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             SectionLabel.Font = Enum.Font.SourceSansBold
             SectionLabel.BackgroundTransparency = 1
@@ -206,7 +206,7 @@ function Lib:Window()
 
             Layout.Padding = UDim.new(0, 5)
             Layout.SortOrder = Enum.SortOrder.LayoutOrder
-            
+
             return Section
         end
 
