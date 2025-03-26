@@ -200,14 +200,14 @@ function Lib:Window()
         SectionStroke.Color = Color3.fromRGB(100, 100, 100)
         SectionStroke.Thickness = 1
 
-        SectionLabel.Size = UDim2.new(0, 125, 0, 20)
+        SectionLabel.Size = UDim2.new(1, 0, 0, 20)
         SectionLabel.Position = UDim2.new(0, 25, 0, 10)
         SectionLabel.Text = SectionName
-        SectionLabel.TextSize = 16
+        SectionLabel.TextSize = 18
         SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
         SectionLabel.Font = Enum.Font.SourceSansBold
         SectionLabel.BackgroundTransparency = 1
-        SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        SectionLabel.TextXAlignment = Enum.TextXAlignment.Center
         SectionLabel.TextYAlignment = Enum.TextYAlignment.Top
 
         Layout.Padding = UDim.new(0, 5)
