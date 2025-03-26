@@ -40,7 +40,7 @@ function CreateRainbowWave(object)
         ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
         ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(148, 0, 211))
-    }
+    }   
     gradient.Rotation = 0
 end
 
@@ -49,8 +49,10 @@ end
 function Lib:Window()
     local Window = {}
     local Tabs = {}
-    local ActiveButton = nil
-    local ActiveLine = nil
+    local ActiveElements = {
+        Button = nil,
+        Line = nil
+    }
 
     local Main = Instance.new("Frame", ScriptGui)
     local MainStroke = Instance.new("UIStroke", Main)
@@ -121,6 +123,20 @@ function Lib:Window()
     end
     MakeDraggable(Main, TitleFrame)
 
+    local function SetActiveElement(button, line)
+        if ActiveElements.Button and ActiveElements.Line then
+            ActiveElements.Line.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+            ActiveElements.Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            ActiveElements.Button.TextColor3 = Color3.fromRGB(180, 180, 180)
+        end
+        ActiveElements.Line = line
+        ActiveElements.Button = button
+        line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+
+
     function Window:Tab(Name)
         Tabs[Name] = Instance.new("Frame", ContentFrame)
         local TabStroke = Instance.new("UIStroke", Tabs[Name])
@@ -156,18 +172,7 @@ function Lib:Window()
                 v.Visible = false
             end
             Tabs[Name].Visible = true
-            if ActiveLine then
-                ActiveLine.Position = UDim2.new(1, -4, 0, 0)
-                ActiveLine.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-                ActiveButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-                ActiveButton.TextColor3 = Color3.fromRGB(180, 180, 180)
-            end
-            line.Position = UDim2.new(0, 0, 0, 0)
-            line.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-            ActiveLine = line
-            ActiveButton = button
-            button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-            button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SetActiveElement(button, line)
         end)
 
         function Window:Section(TabName, SectionName, options)
