@@ -8,18 +8,13 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local Minimized, MinimizeUsable, visible, Usable = false, true, true, true
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
-local function generateRandomName()
-    return "ScriptGui_" .. tostring(tick())
-end
 
-local randomName = generateRandomName()
-
-if game.CoreGui:FindFirstChild(randomName) then
-    game.CoreGui[randomName]:Destroy()
+if game.CoreGui:FindFirstChild("ScriptGui") then
+    game.CoreGui["ScriptGui"]:Destroy()
 end
 
 local ScriptGui = Instance.new("ScreenGui")
-ScriptGui.Name = randomName
+ScriptGui.Name = "ScriptGui"
 ScriptGui.ResetOnSpawn = false
 ScriptGui.Parent = game.CoreGui
 
@@ -174,6 +169,37 @@ function Lib:Window()
             button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
+
+        function Window:Section(TabName, SectionName)
+            local Section = Instance.new("ScrollingFrame", Tabs[TabName])
+            local SectionStroke = Instance.new("UIStroke", Section)
+            local SectionLabel = Instance.new("TextLabel", Section)
+            local Layout = Instance.new("UIListLayout", Section)
+
+            Section.Size = UDim2.new(1, 0, 0, 100)
+            Section.BackgroundTransparency = 0
+            Section.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            Section.BorderSizePixel = 4
+            Section.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            Section.ScrollBarThickness = 6
+            Section.ClipsDescendants = true
+            Section.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
+
+            SectionStroke.Color = Color3.fromRGB(40, 40, 40)
+            SectionStroke.Thickness = 3
+
+            SectionLabel.Size = UDim2.new(1, 0, 0, 30)
+            SectionLabel.Position = UDim2.new(0, 0, 0, -30)
+            SectionLabel.Text = SectionName
+            SectionLabel.TextSize = 18
+            SectionLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+            SectionLabel.Font = Enum.Font.SourceSansBold
+            SectionLabel.BackgroundTransparency = 1
+
+            Layout.Padding = UDim.new(0, 5)
+            Layout.SortOrder = Enum.SortOrder.LayoutOrder
+            return Section
+        end
     end
 
 
