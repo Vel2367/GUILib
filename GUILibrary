@@ -274,6 +274,63 @@ function Lib:Window()
         end)
     end
 
+    function Window:DropDown(TabName, SectionName, Options)
+        local DropDownFrame = Instance.new("Frame", Tabs[TabName])
+        local DropDownLabel = Instance.new("TextLabel", DropDownFrame)
+        local DropdownButton = Instance.new("TextButton", DropDownFrame)
+        local OptionsList = Instance.new("Frame", DropDownFrame)
+        local OptionLayout = Instance.new("UIListLayout", OptionsList)
+
+        DropDownFrame.Size = UDim2.new(0, 300, 0, 50)
+        DropDownFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        DropDownFrame.BorderSizePixel = 0
+        DropDownFrame.Visible = true
+
+        DropDownLabel.Size = UDim2.new(1, 0, 0, 20)
+        DropDownLabel.BackgroundTransparency = 1
+        DropDownLabel.Text = SectionName
+        DropDownLabel.TextSize = 16
+        DropDownLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        DropDownLabel.Font = Enum.Font.SourceSansBold
+
+        DropdownButton.Size = UDim2.new(1, 0, 0, 30)
+        DropdownButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        DropdownButton.Text = "Select an Option"
+        DropdownButton.TextSize = 16
+        DropdownButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+        DropdownButton.Font = Enum.Font.SourceSans
+
+        OptionsList.Size = UDim2.new(1, 0, 0, 0)
+        OptionsList.BackgroundTransparency = 1
+
+        OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+        DropdownButton.MouseButton1Click:Connect(function()
+            if OptionsList.Visible then
+                OptionsList.Visible = false
+            else
+                OptionsList.Visible = true
+            end
+        end)
+
+        for _, option in ipairs(Options) do
+            local Option = Instance.new("TextButton", OptionsList)
+            Option.Size = UDim2.new(1, 0, 0, 30)
+            Option.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            Option.Text = option
+            Option.TextSize = 16
+            Option.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Option.Font = Enum.Font.SourceSans
+
+            Option.MouseButton1Click:Connect(function()
+                DropdownButton.Text = option
+                OptionsList.Visible = false
+            end)
+        end
+
+        return DropDownFrame
+    end
+
     return Window
 end
 
