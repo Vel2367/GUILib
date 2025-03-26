@@ -174,7 +174,7 @@ function Lib:Window()
             Tabs[Name].Visible = true
             SetActiveElement(button, line)
         end)
-    end
+    end 
 
     function Window:Section(TabName, SectionName, options)
         options = options or {}
@@ -226,11 +226,11 @@ function Lib:Window()
         local location = options.location or self.flags
         local flag = options.flag or ""
         callback = callback or function() end
+        location[flag] = default
 
         if default == false then
             location[flag] = false
         else
-            location[flag] = default
             spawn(callback)
         end
 
