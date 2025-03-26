@@ -284,7 +284,7 @@ function Lib:Window()
         local DropDownFrame = Instance.new("Frame", Section)
         local DropDownLabel = Instance.new("TextLabel", DropDownFrame)
         local DropdownButton = Instance.new("TextButton", DropDownFrame)
-        local OptionsList = Instance.new("Frame", DropDownFrame)
+        local OptionsList = Instance.new("ScrollingFrame", DropDownFrame)
         local OptionLayout = Instance.new("UIListLayout", OptionsList)
     
         DropDownFrame.Size = UDim2.new(0, 300, 0, 30)
@@ -312,6 +312,9 @@ function Lib:Window()
         OptionsList.Position = UDim2.new(0, 0, 1, 0)
         OptionsList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         OptionsList.Visible = false
+        OptionsList.ScrollBarThickness = 6
+        OptionsList.ClipsDescendants = true
+        OptionsList.CanvasSize = UDim2.new(0, 0, 0, #dropDownValues * 30)
     
         OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
@@ -337,11 +340,10 @@ function Lib:Window()
                 end
             end)
         end
-
+    
         DropDownFrame.Parent = Section
         return DropDownFrame
     end
-
 
     return Window
 end
