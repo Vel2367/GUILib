@@ -174,51 +174,104 @@ function Lib:Window()
             Tabs[Name].Visible = true
             SetActiveElement(button, line)
         end)
+    end
 
-        function Window:Section(TabName, SectionName, options)
-            options = options or {}
-            local Width = options.Width or 300
-            local Height = options.Height or 200
-            local PosX = options.PosX or 0
-            local PosY = options.PosY or 0
+    function Window:Section(TabName, SectionName, options)
+        options = options or {}
+        local Width = options.Width or 300
+        local Height = options.Height or 200
+        local PosX = options.PosX or 0
+        local PosY = options.PosY or 0
 
-            local Section = Instance.new("ScrollingFrame", Tabs[TabName])
-            local SectionStroke = Instance.new("UIStroke", Section)
-            local SectionLabel = Instance.new("TextLabel", Section)
-            local Layout = Instance.new("UIListLayout", Section)
+        local Section = Instance.new("ScrollingFrame", Tabs[TabName])
+        local SectionStroke = Instance.new("UIStroke", Section)
+        local SectionLabel = Instance.new("TextLabel", Section)
+        local Layout = Instance.new("UIListLayout", Section)
 
-            Section.Size = UDim2.new(0, Width, 0, Height)
-            Section.Position = UDim2.new(0, PosX, 0, PosY)
-            Section.BackgroundTransparency = 0
-            Section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-            Section.BorderSizePixel = 0
-            Section.ScrollBarThickness = 6
-            Section.ClipsDescendants = true
-            Section.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
+        Section.Size = UDim2.new(0, Width, 0, Height)
+        Section.Position = UDim2.new(0, PosX, 0, PosY)
+        Section.BackgroundTransparency = 0
+        Section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        Section.BorderSizePixel = 0
+        Section.ScrollBarThickness = 6
+        Section.ClipsDescendants = true
+        Section.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
 
-            SectionStroke.Color = Color3.fromRGB(100, 100, 100)
-            SectionStroke.Thickness = 1
+        SectionStroke.Color = Color3.fromRGB(100, 100, 100)
+        SectionStroke.Thickness = 1
 
-            SectionLabel.Size = UDim2.new(0, 125, 0, 20)
-            SectionLabel.Position = UDim2.new(0, 25, 0, 10)
-            SectionLabel.Text = SectionName
-            SectionLabel.TextSize = 16
-            SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-            SectionLabel.Font = Enum.Font.SourceSansBold
-            SectionLabel.BackgroundTransparency = 1
-            SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
-            SectionLabel.TextYAlignment = Enum.TextYAlignment.Top
+        SectionLabel.Size = UDim2.new(0, 125, 0, 20)
+        SectionLabel.Position = UDim2.new(0, 25, 0, 10)
+        SectionLabel.Text = SectionName
+        SectionLabel.TextSize = 16
+        SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        SectionLabel.Font = Enum.Font.SourceSansBold
+        SectionLabel.BackgroundTransparency = 1
+        SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        SectionLabel.TextYAlignment = Enum.TextYAlignment.Top
 
-            Layout.Padding = UDim.new(0, 5)
-            Layout.SortOrder = Enum.SortOrder.LayoutOrder
+        Layout.Padding = UDim.new(0, 5)
+        Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-            Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-                Section.CanvasSize = UDim2.new(0, Width, 0, Layout.AbsoluteContentSize.Y)
-            end)
+        Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+            Section.CanvasSize = UDim2.new(0, Width, 0, Layout.AbsoluteContentSize.Y)
+        end)
+        return Section
 
-            return Section
+    end
+
+    function Window:Toggle(TabName, Section, Name, options, callback)
+        options = options or {}
+        local default = options.default or false
+        local location = options.location or self.flags
+        local flag = options.flag or ""
+        callback = callback or function() end
+
+        if default == false then
+            location[flag] = false
+        else
+            location[flag] = default
+            spawn(callback)
         end
 
+        local ToggleFrame = Instance.new("Frame", Section)
+        local ToggleLabel = Instance.new("TextLabel", ToggleFrame)
+        local ToggleButton = Instance.new("TextButton", ToggleFrame)
+        local ToggleIndicator = Instance.new("Frame", ToggleButton)
+
+        ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
+        ToggleFrame.BackgroundTransparency = 1
+
+        ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+        ToggleLabel.Position = UDim2.new(0, 5, 0, 0)
+        ToggleLabel.Text = Name
+        ToggleLabel.TextSize = 16
+        ToggleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        ToggleLabel.Font = Enum.Font.SourceSansBold
+        ToggleLabel.BackgroundTransparency = 1
+        ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+        ToggleButton.Size = UDim2.new(0, 20, 0, 20)
+        ToggleButton.Position = UDim2.new(0.8, 0, 0.15, 0)
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        ToggleButton.Text = ""
+        ToggleButton.AutoButtonColor = false
+        ToggleButton.BorderSizePixel = 2
+        ToggleButton.BorderColor3 = Color3.fromRGB(90, 90, 90)
+
+        ToggleIndicator.Size = UDim2.new(0.6, 0, 0.6, 0)
+        ToggleIndicator.Position = UDim2.new(0.2, 0, 0.2, 0)
+        ToggleIndicator.BackgroundColor3 = default and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
+        ToggleIndicator.BorderSizePixel = 0
+        ToggleIndicator.Parent = ToggleButton
+
+        local toggled = default
+        ToggleButton.MouseButton1Click:Connect(function()
+            toggled = not toggled
+            location[flag] = toggled
+            ToggleIndicator.BackgroundColor3 = toggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(50, 50, 50)
+            task.spawn(callback, toggled)
+        end)
     end
 
     return Window
