@@ -207,11 +207,14 @@ function Lib:Window()
             Layout.Padding = UDim.new(0, 5)
             Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-            function Section:SetSize(newWidth, newHeight)
-                self.Size = UDim2.new(0, newWidth, 0, newHeight)
-                self.CanvasSize = UDim2.new(0, newWidth, 0, newHeight)
-                self.ScrollBarThickness = (newHeight < self.CanvasSize.Y.Offset) and 6 or 0
-            end 
+            Section:GetPropertyChangedSignal("Parent"):Connect(function()
+                Section.CanvasSize = UDim2.new(0, Width, 0, Layout.AbsoluteContentSize.Y)
+                if Layout.AbsoluteContentSize.Y > Height then
+                    Section.ScrollBarThickness = 6
+                else
+                    Section.ScrollBarThickness = 0
+                end
+            end)
 
             return Section
         end
