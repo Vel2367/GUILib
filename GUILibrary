@@ -170,12 +170,20 @@ function Lib:Window()
             button.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
 
-        function Window:Section(TabName, SectionName, Width, Height)
+        function Window:Section(TabName, SectionName, options)
+            options = options or {}
+            local Width = options.Width or 300
+            local Height = options.Height or 200
+            local PosX = options.PosX or 0
+            local PosY = options.PosY or 0
+
             local Section = Instance.new("ScrollingFrame", Tabs[TabName])
             local SectionStroke = Instance.new("UIStroke", Section)
             local SectionLabel = Instance.new("TextLabel", Section)
+            local Layout = Instance.new("UIListLayout", Section)
 
-            Section.Size = UDim2.new(0, Width or 300, 0, Height or 200)
+            Section.Size = UDim2.new(0, Width, 0, Height)
+            Section.Position = UDim2.new(0, PosX, 0, PosY)
             Section.BackgroundTransparency = 0
             Section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
             Section.BorderSizePixel = 0
@@ -186,21 +194,22 @@ function Lib:Window()
             SectionStroke.Color = Color3.fromRGB(80, 80, 80)
             SectionStroke.Thickness = 2
 
-            SectionLabel.Size = UDim2.new(1, 0, 0, 20)
-            SectionLabel.Position = UDim2.new(0, 10, 0, -10)
+            SectionLabel.Size = UDim2.new(0, 100, 0, 20)
+            SectionLabel.Position = UDim2.new(0, 10, 0, 10)
             SectionLabel.Text = SectionName
             SectionLabel.TextSize = 14
             SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             SectionLabel.Font = Enum.Font.SourceSansBold
             SectionLabel.BackgroundTransparency = 1
             SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SectionLabel.TextYAlignment = Enum.TextYAlignment.Top
 
-            local Layout = Instance.new("UIListLayout", Section)
             Layout.Padding = UDim.new(0, 5)
             Layout.SortOrder = Enum.SortOrder.LayoutOrder
-
+            
             return Section
         end
+
     end
 
     return Window
