@@ -213,6 +213,10 @@ function Lib:Window()
         Layout.Padding = UDim.new(0, 5)
         Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
+        Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+            Section.CanvasSize = UDim2.new(0, Width, 0, Layout.AbsoluteContentSize.Y)
+        end)
+        
         return Section
     end
 
@@ -276,22 +280,26 @@ function Lib:Window()
         local flag = options.flag or Name
         local default = options.default or nil
         local dropDownValues = options.values or {}
-    
+
         if location[flag] == nil then
-            location[flag] = default
+            if table.find(dropDownValues, default) then
+                location[flag] = default
+            else
+                location[flag] = dropDownValues[1] or nil
+            end
         end
-    
+
         local DropDownFrame = Instance.new("Frame", Section)
         local DropDownLabel = Instance.new("TextLabel", DropDownFrame)
         local DropdownButton = Instance.new("TextButton", DropDownFrame)
         local OptionsList = Instance.new("ScrollingFrame", DropDownFrame)
         local OptionLayout = Instance.new("UIListLayout", OptionsList)
-    
+
         DropDownFrame.Size = UDim2.new(0, 300, 0, 30)
         DropDownFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         DropDownFrame.BorderSizePixel = 1
         DropDownFrame.BorderColor3 = Color3.fromRGB(20, 20, 20)
-    
+
         DropDownLabel.Size = UDim2.new(0.9, 0, 1, 0)
         DropDownLabel.Position = UDim2.new(0, 10, 0, 0)
         DropDownLabel.BackgroundTransparency = 1
@@ -300,28 +308,36 @@ function Lib:Window()
         DropDownLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
         DropDownLabel.Font = Enum.Font.SourceSans
         DropDownLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
+
         DropdownButton.Size = UDim2.new(0, 20, 0, 20)
         DropdownButton.Position = UDim2.new(1, -25, 0.5, -10)
         DropdownButton.BackgroundTransparency = 1
         DropdownButton.Text = "v"
         DropdownButton.TextSize = 16
         DropdownButton.TextColor3 = Color3.fromRGB(180, 180, 180)
-    
+
         OptionsList.Size = UDim2.new(1, 0, 0, 0)
         OptionsList.Position = UDim2.new(0, 0, 1, 0)
         OptionsList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         OptionsList.Visible = false
         OptionsList.ScrollBarThickness = 6
         OptionsList.ClipsDescendants = true
-        OptionsList.CanvasSize = UDim2.new(0, 0, 0, #dropDownValues * 30)
-    
+
         OptionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    
+
+        OptionLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            OptionsList.CanvasSize = UDim2.new(0, 0, 0, OptionLayout.AbsoluteContentSize.Y)
+        end)
+
         DropdownButton.MouseButton1Click:Connect(function()
+            for _, child in ipairs(Section:GetChildren()) do
+                if child:IsA("ScrollingFrame") and child ~= OptionsList then
+                    child.Visible = false
+                end
+            end
             OptionsList.Visible = not OptionsList.Visible
         end)
-    
+
         for _, option in ipairs(dropDownValues) do
             local Option = Instance.new("TextButton", OptionsList)
             Option.Size = UDim2.new(1, 0, 0, 30)
@@ -330,7 +346,7 @@ function Lib:Window()
             Option.TextSize = 16
             Option.TextColor3 = Color3.fromRGB(200, 200, 200)
             Option.Font = Enum.Font.SourceSans
-    
+
             Option.MouseButton1Click:Connect(function()
                 location[flag] = option
                 DropDownLabel.Text = option
@@ -340,10 +356,11 @@ function Lib:Window()
                 end
             end)
         end
-    
+
         DropDownFrame.Parent = Section
         return DropDownFrame
     end
+
 
     return Window
 end
