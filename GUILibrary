@@ -213,11 +213,7 @@ function Lib:Window()
         Layout.Padding = UDim.new(0, 5)
         Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-        Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-            Section.CanvasSize = UDim2.new(0, Width, 0, Layout.AbsoluteContentSize.Y)
-        end)
         return Section
-
     end
 
     function Window:Toggle(TabName, Section, Name, options, callback)
