@@ -195,7 +195,7 @@ function Lib:Window()
             SectionStroke.Thickness = 1
 
             SectionLabel.Size = UDim2.new(0, 125, 0, 20)
-            SectionLabel.Position = UDim2.new(0, 20, 0, 10)
+            SectionLabel.Position = UDim2.new(0, 25, 0, 10)
             SectionLabel.Text = SectionName
             SectionLabel.TextSize = 16
             SectionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -207,13 +207,8 @@ function Lib:Window()
             Layout.Padding = UDim.new(0, 5)
             Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-            Section:GetPropertyChangedSignal("Parent"):Connect(function()
+            Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
                 Section.CanvasSize = UDim2.new(0, Width, 0, Layout.AbsoluteContentSize.Y)
-                if Layout.AbsoluteContentSize.Y > Height then
-                    Section.ScrollBarThickness = 6
-                else
-                    Section.ScrollBarThickness = 0
-                end
             end)
 
             return Section
