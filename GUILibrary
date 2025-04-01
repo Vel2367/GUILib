@@ -136,6 +136,16 @@ function Lib:Window()
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
     end
 
+    TabHolder:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        local contentSize = TabHolderLayout.AbsoluteContentSize.Y
+        if contentSize > TabHolder.AbsoluteSize.Y then
+            TabHolder.CanvasSize = UDim2.new(0, TabHolder.AbsoluteSize.X, 0, contentSize)
+            TabHolder.ScrollBarThickness = 6
+        else
+            TabHolder.CanvasSize = UDim2.new(0, TabHolder.AbsoluteSize.X, 0, TabHolder.AbsoluteSize.Y)
+            TabHolder.ScrollBarThickness = 0
+        end
+    end)
 
     function Window:Tab(Name)
         Tabs[Name] = Instance.new("Frame", ContentFrame)
@@ -306,7 +316,7 @@ function Lib:Window()
         DropDownLabel.Text = location[flag] or Name
         DropDownLabel.TextSize = 16
         DropDownLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-        DropDownLabel.Font = Enum.Font.SourceSans
+        DropDownLabel.Font = Enum.Font.SourceSansBold
         DropDownLabel.TextXAlignment = Enum.TextXAlignment.Left
 
         DropdownButton.Size = UDim2.new(0, 20, 0, 20)
@@ -316,7 +326,7 @@ function Lib:Window()
         DropdownButton.TextSize = 16
         DropdownButton.TextColor3 = Color3.fromRGB(180, 180, 180)
 
-        OptionsList.Size = UDim2.new(1, 0, 0, 0)
+        OptionsList.Size = UDim2.new(1, 0, 0, 60)
         OptionsList.Position = UDim2.new(0, 0, 1, 0)
         OptionsList.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         OptionsList.Visible = false
