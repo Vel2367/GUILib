@@ -1,0 +1,53 @@
+local GUI = {}
+
+if game.CoreGui:FindFirstChild("ScriptGui") then
+    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+end
+
+if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
+
+local ScriptGui = Instance.new("ScreenGui")
+ScriptGui.Name = "ScriptGui"
+ScriptGui.Parent = game.CoreGui
+
+local UIS = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local locPlayer = game.Players.LocalPlayer
+local visible, Usable = true, true
+
+UIS.InputBegan:Connect(function(input, gameProcesses)
+    if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
+    Usable = false
+    visible = not visible
+    for _, v in pairs(ScriptGui:GetDescendants()) do
+        if v:IsA("GuiObject") then
+            v.Visible = visible
+        end
+    end
+    Usable = true
+end)
+
+function GUI:Window()
+    local Window = {}
+
+    local Main = Instance.new("Frame", ScriptGui)
+    local UICMain = Instance.new("UICorner", Main)
+    local Line = Instance.new("Frame", Main)
+    Main.Name = "Main"
+    Main.Size = UDim2.new(0,650,0,450)
+    Main.Position = UDim2.new(0.5,-325,0.5,-225)
+    UICMain.CornerRadius = UDim.new(0, 8)
+    Line.Position = UDim2.new(0.05,0,0.10,0)
+    Line.Size = UDim2.new(0.9,0,0,3)
+    Line.BorderSizePixel = 0
+    
+
+    local Title = Instance.new("Frame", Main)
+    Title.Position = UDim2.new(0,0,0,0)
+    Title.Size = UDim2.new(1,0,0.15,0)
+    Title.BackgroundTransparency = 1
+    Title.BorderSizePixel = 0
+
+
+    return Window 
+end
