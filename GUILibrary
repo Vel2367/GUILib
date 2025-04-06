@@ -33,13 +33,18 @@ function GUI:Window()
     local Main = Instance.new("Frame", ScriptGui)
     local UICMain = Instance.new("UICorner", Main)
     local Line = Instance.new("Frame", Main)
-    Line.Name = "Line"
     local UIGLine = Instance.new("UIGradient", Line)
+    local Title = Instance.new("Frame", Main)
+    local TabHolder = Instance.new("ScrollingFrame", Main)
+    local UIGLTabHolder = Instance.new("UIGridLayout", TabHolder)
+
     Main.Name = "Main"
     Main.Size = UDim2.new(0,650,0,450)
     Main.Position = UDim2.new(0.5,-325,0.5,-225)
     Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     UICMain.CornerRadius = UDim.new(0, 8)
+
+    Line.Name = "Line"
     Line.Position = UDim2.new(0.025,0,0.10,0)
     Line.Size = UDim2.new(0.95,0,0,3)
     Line.BorderSizePixel = 0
@@ -52,12 +57,33 @@ function GUI:Window()
         NumberSequenceKeypoint.new(1,0.98)
     }
 
-    local Title = Instance.new("Frame", Main)
     Title.Name = "Title"
     Title.Position = UDim2.new(0,0,0,0)
     Title.Size = UDim2.new(1,0,0.15,0)
     Title.BackgroundTransparency = 1
     Title.BorderSizePixel = 0
+
+    TabHolder.Name = "TabsHolder"
+    TabHolder.Position = UDim2.new(0.025,0,0.175,0)
+    TabHolder.Size = UDim2.new(0.15,0,0.8,0)
+    TabHolder.BackgroundTransparency = 1
+    TabHolder.BorderSizePixel = 0
+    TabHolder.ScrollBarThickness = 0
+
+    UIGLTabHolder.CellPadding = UDim2.new(0,1,0,10)
+    UIGLTabHolder.FillDirection = Enum.FillDirection.Vertical
+    UIGLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
+    UIGLTabHolder.CellSize = UDim2.new(1,0,0,90)
+    
+
+    local function UIGL(scrollFrame)
+        local grid = scrollFrame:FindFirstChildOfClass("UIGridLayout")
+        grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, grid.AbsoluteContentSize.Y + 10)
+            scrollFrame.ScrollingEnabled = grid.AbsoluteContentSize.Y > scrollFrame.AbsoluteSize.Y
+        end)
+    end
+    UIGL(UIGLTabHolder)
 
     local function MakeDrag(frame, handle)
         local dragging = false
