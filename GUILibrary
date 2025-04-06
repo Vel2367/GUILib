@@ -86,7 +86,8 @@ function GUI:Window()
     end
     MakeDrag(Main, Title)
 
-    
 
     return Window 
 end
+
+return GUI
