@@ -53,3 +53,5 @@ function GUI:Window()
 
     return Window 
 end
+
+return GUI
