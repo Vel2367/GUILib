@@ -154,22 +154,22 @@ function GUI:Window()
                 local layout = Instance.new("UIListLayout", section)
                 local padding = Instance.new("UIPadding", section)
 
+                sectionWrapper.Name = opts.Name or "Section"
                 sectionWrapper.BackgroundTransparency = 1
                 sectionWrapper.Size = opts.Size or UDim2.new(0.48, 0, 1, 0)
                 sectionWrapper.Position = opts.Position or UDim2.new(0, 0, 0, 0)
-
+                
                 titleLabel.Text = opts.Name or "Section"
                 titleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
                 titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
                 titleLabel.BorderSizePixel = 0
                 titleLabel.Font = Enum.Font.Code
-                titleLabel.TextSize = 14
+                titleLabel.TextSize = 16
                 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
                 titleLabel.Size = UDim2.new(1, 0, 0, 18)
                 titleLabel.Position = UDim2.new(0, 0, 0, 0)
                 titleLabel.ZIndex = 2
 
-                section.Name = opts.Name or "Section"
                 section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 section.BorderSizePixel = 0
                 section.Position = UDim2.new(0, 0, 0, 18)
