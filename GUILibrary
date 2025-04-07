@@ -149,11 +149,12 @@ function GUI:Window()
         if typeof(sectionList) == "table" then
             for _, opts in ipairs(sectionList) do
                 local section = Instance.new("ScrollingFrame", content)
-                local padding = Instance.new("UIPadding", section)
                 local corner = Instance.new("UICorner", section)
-                local layout = Instance.new("UIListLayout", section)
                 local titleLabel = Instance.new("TextLabel", section)
-
+                local underline = Instance.new("Frame", section)
+                local layout = Instance.new("UIListLayout", section)
+                local padding = Instance.new("UIPadding", section)
+                
                 section.Name = opts.Name or "Section"
                 section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 section.BorderSizePixel = 0
@@ -171,21 +172,25 @@ function GUI:Window()
                 titleLabel.Font = Enum.Font.GothamBold
                 titleLabel.TextSize = 16
                 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-                titleLabel.Size = UDim2.new(1, -10, 0, 30)
-                titleLabel.Position = UDim2.new(0, 5, 0, 5)
+                titleLabel.Size = UDim2.new(1, -20, 0, 24)
+                titleLabel.Position = UDim2.new(0, 10, 0, 10)
+
+                underline.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                underline.BorderSizePixel = 0
+                underline.Position = UDim2.new(0, 10, 0, 35)
+                underline.Size = UDim2.new(1, -20, 0, 1)
 
                 layout.Padding = UDim.new(0, 5)
                 layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-                padding.PaddingTop = UDim.new(0, 35)
-                padding.PaddingLeft = UDim.new(0, 5)
-                padding.PaddingRight = UDim.new(0, 5)
-                padding.PaddingBottom = UDim.new(0, 5)
+                padding.PaddingTop = UDim.new(0, 45)
+                padding.PaddingLeft = UDim.new(0, 10)
+                padding.PaddingRight = UDim.new(0, 10)
+                padding.PaddingBottom = UDim.new(0, 10)
 
                 table.insert(createdSections, section)
             end
         end
-
 
         local function highlight(selected)
             tab.BackgroundColor3 = selected and Color3.fromRGB(15, 15, 15) or Color3.fromRGB(35, 35, 35)
