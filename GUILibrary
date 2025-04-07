@@ -71,7 +71,7 @@ function GUI:Window()
     TabHolder.BorderSizePixel = 0
     TabHolder.ScrollBarThickness = 0
 
-    UIGLTabHolder.CellPadding = UDim2.new(0,1,0,10)
+    UIGLTabHolder.CellPadding = UDim2.new(0,1,0,7)
     UIGLTabHolder.FillDirection = Enum.FillDirection.Vertical
     UIGLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
     UIGLTabHolder.CellSize = UDim2.new(1,0,0,90)
@@ -120,6 +120,7 @@ function GUI:Window()
 
     function Window:AddTab(name, icon, sectionList)
         local tab = Instance.new("TextButton", TabHolder)
+        local UICtab = Instance.new("UICorner", tab)
         local content = Instance.new("Frame", SectionHolder)
         local createdSections = {}
 
@@ -131,6 +132,8 @@ function GUI:Window()
         tab.TextSize = 16
         tab.Font = Enum.Font.Code
         tab.AutoButtonColor = false
+
+        UICtab.CornerRadius = UDim.new(0, 10)
 
         if icon and typeof(icon) == "string" and icon ~= "" then
             local iconLabel = Instance.new("ImageLabel", tab)
