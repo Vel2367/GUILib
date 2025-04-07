@@ -29,7 +29,9 @@ getgenv().Theme = {
         ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 55, 55))
     },
     Line = Color3.fromRGB(255, 255, 255),
-    SettingButton = Color3.fromRGB(70, 70, 70)
+    SettingButton = Color3.fromRGB(50, 50, 50),
+    Sections = Color3.fromRGB(20,20,20),
+    UISSections = Color3.fromRGB(70,70,70)
 }
 
 local UIS = game:GetService("UserInputService")
@@ -97,7 +99,7 @@ function GUI:Window(config)
     UIGLTabHolder.CellPadding = UDim2.new(0,1,0,7)
     UIGLTabHolder.FillDirection = Enum.FillDirection.Vertical
     UIGLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
-    UIGLTabHolder.CellSize = UDim2.new(1,0,0,90)
+    UIGLTabHolder.CellSize = UDim2.new(1,0,0,65)
 
     SectionHolder.Name = "SectionsHolder"
     SectionHolder.Position = UDim2.new(0.2,0,0.175,0)
@@ -106,7 +108,7 @@ function GUI:Window(config)
     SectionHolder.BorderSizePixel = 0
 
     SettingsButton.Text = "⚙️"
-    SettingsButton.Font = Enum.Font.Code
+    SettingsButton.Font = Enum.Font.GothamBold
     SettingsButton.TextSize = 18
     SettingsButton.TextColor3 = getgenv().Theme.Text
     SettingsButton.BackgroundColor3 = getgenv().Theme.SettingButton
@@ -166,7 +168,7 @@ function GUI:Window(config)
         tabButton.BackgroundColor3 = getgenv().Theme.Accent
         tabButton.Text = tabData.Name
         tabButton.TextColor3 = getgenv().Theme.Text
-        tabButton.Font = Enum.Font.Code
+        tabButton.Font = Enum.Font.Gotham
         tabButton.TextSize = 17
         tabButton.AutoButtonColor = false
         UICtabButton.CornerRadius = UDim.new(0, 10)
@@ -195,6 +197,7 @@ function GUI:Window(config)
             local section = Instance.new("ScrollingFrame", wrapper)
             local layout = Instance.new("UIListLayout", section)
             local padding = Instance.new("UIPadding", section)
+            local UISsection = Instance.new("UIStroke", section)
 
             wrapper.Name = sec.Name or "Section"
             wrapper.BackgroundTransparency = 1
@@ -204,18 +207,21 @@ function GUI:Window(config)
             label.Text = sec.Name or "Section"
             label.TextColor3 = Color3.fromRGB(190, 190, 190)
             label.BackgroundTransparency = 1
-            label.Font = Enum.Font.Code
-            label.TextSize = 16
+            label.Font = Enum.Font.Gotham
+            label.TextSize = 17
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Size = UDim2.new(1, 0, 0, 18)
+            label.ZIndex = 2
 
-            section.Size = UDim2.new(1, 0, 1, -18)
-            section.Position = UDim2.new(0, 0, 0, 18)
-            section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            section.Size = UDim2.new(1, 0, 1, -12)
+            section.Position = UDim2.new(0, 0, 0, 12)
+            section.BackgroundColor3 = getgenv().Theme.Sections
             section.BorderSizePixel = 0
             section.AutomaticCanvasSize = Enum.AutomaticSize.Y
             section.CanvasSize = UDim2.new(0, 0, 0, 0)
             section.ScrollBarThickness = 4
+            UISsection.Color = getgenv().Theme.UISSections
+            UISsection.Thickness = 1
 
             layout.Padding = UDim.new(0, 5)
             layout.SortOrder = Enum.SortOrder.LayoutOrder
