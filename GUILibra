@@ -18,8 +18,11 @@ getgenv().Theme = {
     SelectedTab = Color3.fromRGB(35, 35, 55),
     HoverTab = Color3.fromRGB(45, 45, 65),
     UGLLine = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(1, 1)
+        NumberSequenceKeypoint.new(0,0.98),
+        NumberSequenceKeypoint.new(0.25,0),
+        NumberSequenceKeypoint.new(0.5,0),
+        NumberSequenceKeypoint.new(0.75,0),
+        NumberSequenceKeypoint.new(1,0.98)
     },
     BackgroundMain = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 35)),
