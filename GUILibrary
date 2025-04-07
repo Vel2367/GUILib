@@ -148,19 +148,44 @@ function GUI:Window()
 
         if typeof(sectionList) == "table" then
             for _, opts in ipairs(sectionList) do
-                local section = Instance.new("Frame", content)
+                local section = Instance.new("ScrollingFrame", content)
+                local padding = Instance.new("UIPadding", section)
+                local corner = Instance.new("UICorner", section)
+                local layout = Instance.new("UIListLayout", section)
+                local titleLabel = Instance.new("TextLabel", section)
+
                 section.Name = opts.Name or "Section"
                 section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 section.BorderSizePixel = 0
                 section.Size = opts.Size or UDim2.new(0.48, 0, 1, 0)
                 section.Position = opts.Position or UDim2.new(0, 0, 0, 0)
+                section.AutomaticCanvasSize = Enum.AutomaticSize.Y
+                section.CanvasSize = UDim2.new(0, 0, 0, 0)
+                section.ScrollBarThickness = 4
 
-                local corner = Instance.new("UICorner", section)
                 corner.CornerRadius = UDim.new(0, 6)
+
+                titleLabel.Text = opts.Name or "Section"
+                titleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+                titleLabel.BackgroundTransparency = 1
+                titleLabel.Font = Enum.Font.GothamBold
+                titleLabel.TextSize = 16
+                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                titleLabel.Size = UDim2.new(1, -10, 0, 30)
+                titleLabel.Position = UDim2.new(0, 5, 0, 5)
+
+                layout.Padding = UDim.new(0, 5)
+                layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+                padding.PaddingTop = UDim.new(0, 35)
+                padding.PaddingLeft = UDim.new(0, 5)
+                padding.PaddingRight = UDim.new(0, 5)
+                padding.PaddingBottom = UDim.new(0, 5)
 
                 table.insert(createdSections, section)
             end
         end
+
 
         local function highlight(selected)
             tab.BackgroundColor3 = selected and Color3.fromRGB(15, 15, 15) or Color3.fromRGB(35, 35, 35)
