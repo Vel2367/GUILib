@@ -163,6 +163,7 @@ function GUI:Window()
                 titleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
                 titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
                 titleLabel.BorderSizePixel = 0
+                titleLabel.BackgroundTransparency = 1
                 titleLabel.Font = Enum.Font.Code
                 titleLabel.TextSize = 16
                 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -172,8 +173,8 @@ function GUI:Window()
 
                 section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 section.BorderSizePixel = 0
-                section.Position = UDim2.new(0, 0, 0, 18)
-                section.Size = UDim2.new(1, 0, 1, -18)
+                section.Position = UDim2.new(0, 0, 0, 13)
+                section.Size = UDim2.new(1, 0, 1, -13)
                 section.AutomaticCanvasSize = Enum.AutomaticSize.Y
                 section.CanvasSize = UDim2.new(0, 0, 0, 0)
                 section.ScrollBarThickness = 4
