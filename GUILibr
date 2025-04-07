@@ -7,7 +7,7 @@ end
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
 getgenv().Theme = {
-    Background = Color3.fromRGB(15, 15, 15),
+    Background = Color3.fromRGB(20, 20, 20),
     Accent = Color3.fromRGB(30, 30, 30),
     AccentAlt = Color3.fromRGB(50, 50, 50),
     Highlight = Color3.fromRGB(80, 170, 255),
@@ -24,7 +24,7 @@ getgenv().Theme = {
         NumberSequenceKeypoint.new(0.75,0),
         NumberSequenceKeypoint.new(1,0.98)
     },
-    BackgroundMain = ColorSequence.new{
+        BackgroundMain = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
     },
@@ -71,7 +71,6 @@ function GUI:Window(config)
     Main.Name = "Main"
     Main.Size = UDim2.new(0,650,0,450)
     Main.Position = UDim2.new(0.5,-325,0.5,-225)
-    Main.BackgroundColor3 = getgenv().Theme.Background
     UICMain.CornerRadius = UDim.new(0, 8)
     UIGMain.Color = getgenv().Theme.BackgroundMain
 
@@ -160,13 +159,14 @@ function GUI:Window(config)
         local tabButton = Instance.new("TextButton", TabHolder)
         local UICtabButton = Instance.new("UICorner", tabButton)
         local contentFrame = Instance.new("Frame", SectionHolder)
+
         tabButton.Size = UDim2.new(1, 0, 0, 90)
         tabButton.BorderSizePixel = 0
         tabButton.BackgroundColor3 = getgenv().Theme.Accent
         tabButton.Text = tabData.Name
         tabButton.TextColor3 = getgenv().Theme.Text
         tabButton.Font = Enum.Font.Code
-        tabButton.TextSize = 16
+        tabButton.TextSize = 17
         tabButton.AutoButtonColor = false
         UICtabButton.CornerRadius = UDim.new(0, 10)
 
@@ -194,7 +194,7 @@ function GUI:Window(config)
             local section = Instance.new("ScrollingFrame", wrapper)
             local layout = Instance.new("UIListLayout", section)
             local padding = Instance.new("UIPadding", section)
-            
+
             wrapper.Name = sec.Name or "Section"
             wrapper.BackgroundTransparency = 1
             wrapper.Size = sec.Size or UDim2.new(0.48, 0, 1, 0)
@@ -206,7 +206,7 @@ function GUI:Window(config)
             label.Font = Enum.Font.Code
             label.TextSize = 16
             label.TextXAlignment = Enum.TextXAlignment.Left
-            label.Size = UDim2.new(1, 0, 0, 18)
+            label.Size = UDim2.new(1, 0, 0, 20)
 
             section.Size = UDim2.new(1, 0, 1, -18)
             section.Position = UDim2.new(0, 0, 0, 18)
