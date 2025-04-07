@@ -128,8 +128,8 @@ function GUI:Window()
         tab.BorderSizePixel = 0
         tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         tab.TextColor3 = Color3.fromRGB(200, 200, 200)
-        tab.TextSize = 14
-        tab.Font = Enum.Font.GothamBold
+        tab.TextSize = 16
+        tab.Font = Enum.Font.Code
         tab.AutoButtonColor = false
 
         if icon and typeof(icon) == "string" and icon ~= "" then
