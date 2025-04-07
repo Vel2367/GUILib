@@ -130,7 +130,7 @@ function GUI:Window()
         tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         tab.TextColor3 = Color3.fromRGB(200, 200, 200)
         tab.TextSize = 16
-        tab.Font = Enum.Font.Bangers
+        tab.Font = Enum.Font.SourceSans
         tab.AutoButtonColor = false
 
         UICtab.CornerRadius = UDim.new(0, 10)
@@ -167,7 +167,7 @@ function GUI:Window()
                 titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
                 titleLabel.BorderSizePixel = 0
                 titleLabel.BackgroundTransparency = 1
-                titleLabel.Font = Enum.Font.Bangers
+                titleLabel.Font = Enum.Font.SourceSans
                 titleLabel.TextSize = 15
                 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
                 titleLabel.Size = UDim2.new(1, 0, 0, 18)
