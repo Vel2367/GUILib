@@ -1,0 +1,225 @@
+local GUI = {}
+
+if game.CoreGui:FindFirstChild("ScriptGui") then
+    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+end
+
+if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
+
+local ScriptGui = Instance.new("ScreenGui")
+ScriptGui.Name = "ScriptGui"
+ScriptGui.Parent = game.CoreGui
+
+local UIS = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local locPlayer = game.Players.LocalPlayer
+local visible, Usable = true, true
+
+UIS.InputBegan:Connect(function(input, gameProcesses)
+    if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
+    Usable = false
+    visible = not visible
+    for _, v in pairs(ScriptGui:GetDescendants()) do
+        if v:IsA("GuiObject") then
+            v.Visible = visible
+        end
+    end
+    Usable = true
+end)
+
+function GUI:Window()
+    local Window = {}
+
+    local Main = Instance.new("Frame", ScriptGui)
+    local UICMain = Instance.new("UICorner", Main)
+    local Line = Instance.new("Frame", Main)
+    local UIGLine = Instance.new("UIGradient", Line)
+    local Title = Instance.new("Frame", Main)
+    local TabHolder = Instance.new("ScrollingFrame", Main)
+    local UIGLTabHolder = Instance.new("UIGridLayout", TabHolder)
+    local SectionHolder = Instance.new("Frame", Main)
+
+    Main.Name = "Main"
+    Main.Size = UDim2.new(0,650,0,450)
+    Main.Position = UDim2.new(0.5,-325,0.5,-225)
+    Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    UICMain.CornerRadius = UDim.new(0, 8)
+
+    Line.Name = "Line"
+    Line.Position = UDim2.new(0.025,0,0.10,0)
+    Line.Size = UDim2.new(0.95,0,0,3)
+    Line.BorderSizePixel = 0
+    Line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    UIGLine.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0,0.98),
+        NumberSequenceKeypoint.new(0.25,0),
+        NumberSequenceKeypoint.new(0.5,0),
+        NumberSequenceKeypoint.new(0.75,0),
+        NumberSequenceKeypoint.new(1,0.98)
+    }
+
+    Title.Name = "Title"
+    Title.Position = UDim2.new(0,0,0,0)
+    Title.Size = UDim2.new(1,0,0.1,0)
+    Title.BackgroundTransparency = 1
+    Title.BorderSizePixel = 0
+
+    TabHolder.Name = "TabsHolder"
+    TabHolder.Position = UDim2.new(0.025,0,0.15,0)
+    TabHolder.Size = UDim2.new(0.15,0,0.825,0)
+    TabHolder.BackgroundTransparency = 1
+    TabHolder.BorderSizePixel = 0
+    TabHolder.ScrollBarThickness = 0
+
+    UIGLTabHolder.CellPadding = UDim2.new(0,1,0,7)
+    UIGLTabHolder.FillDirection = Enum.FillDirection.Vertical
+    UIGLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
+    UIGLTabHolder.CellSize = UDim2.new(1,0,0,90)
+
+    SectionHolder.Name = "SectionsHolder"
+    SectionHolder.Position = UDim2.new(0.2,0,0.15,0)
+    SectionHolder.Size = UDim2.new(0.775,0,0.825,0)
+    SectionHolder.BackgroundTransparency = 1
+    SectionHolder.BorderSizePixel = 0
+
+    local function UIGL(scrollFrame)
+        local grid = scrollFrame:FindFirstChildOfClass("UIGridLayout")
+        grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, grid.AbsoluteContentSize.Y + 10)
+            scrollFrame.ScrollingEnabled = grid.AbsoluteContentSize.Y > scrollFrame.AbsoluteSize.Y
+        end)
+    end
+    UIGL(TabHolder)
+
+    local function MakeDrag(frame, handle)
+        local dragging = false
+        local dragStart, startPos
+
+        handle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+            end
+        end)
+
+        handle.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+
+        UIS.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                frame.Position = startPos + UDim2.fromOffset(delta.X, delta.Y)
+            end
+        end)
+    end
+    MakeDrag(Main, Title)
+
+    function Window:AddTab(name, icon, sectionList)
+        local tab = Instance.new("TextButton", TabHolder)
+        local UICtab = Instance.new("UICorner", tab)
+        local content = Instance.new("Frame", SectionHolder)
+        local createdSections = {}
+
+        tab.Text = name
+        tab.Size = UDim2.new(1, 0, 0, 90)
+        tab.BorderSizePixel = 0
+        tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        tab.TextColor3 = Color3.fromRGB(200, 200, 200)
+        tab.TextSize = 16
+        tab.Font = Enum.Font.Bangers
+        tab.AutoButtonColor = false
+
+        UICtab.CornerRadius = UDim.new(0, 10)
+
+        if icon and typeof(icon) == "string" and icon ~= "" then
+            local iconLabel = Instance.new("ImageLabel", tab)
+            iconLabel.Size = UDim2.new(0, 24, 0, 24)
+            iconLabel.Position = UDim2.new(0, 8, 0, 8)
+            iconLabel.BackgroundTransparency = 1
+            iconLabel.Image = icon
+        end
+
+        content.Name = name .. "_Content"
+        content.Size = UDim2.new(1, 0, 1, 0)
+        content.BackgroundTransparency = 1
+        content.Visible = false
+
+
+        if typeof(sectionList) == "table" then
+            for _, opts in ipairs(sectionList) do
+                local sectionWrapper = Instance.new("Frame", content)
+                local titleLabel = Instance.new("TextLabel", sectionWrapper)
+                local section = Instance.new("ScrollingFrame", sectionWrapper)
+                local layout = Instance.new("UIListLayout", section)
+                local padding = Instance.new("UIPadding", section)
+
+                sectionWrapper.Name = opts.Name or "Section"
+                sectionWrapper.BackgroundTransparency = 1
+                sectionWrapper.Size = opts.Size or UDim2.new(0.48, 0, 1, 0)
+                sectionWrapper.Position = opts.Position or UDim2.new(0, 0, 0, 0)
+                
+                titleLabel.Text = opts.Name or "Section"
+                titleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
+                titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                titleLabel.BorderSizePixel = 0
+                titleLabel.BackgroundTransparency = 1
+                titleLabel.Font = Enum.Font.Bangers
+                titleLabel.TextSize = 15
+                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                titleLabel.Size = UDim2.new(1, 0, 0, 18)
+                titleLabel.Position = UDim2.new(0, 0, 0, 0)
+                titleLabel.ZIndex = 2
+
+                section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                section.BorderSizePixel = 0
+                section.Position = UDim2.new(0, 0, 0, 13)
+                section.Size = UDim2.new(1, 0, 1, -13)
+                section.AutomaticCanvasSize = Enum.AutomaticSize.Y
+                section.CanvasSize = UDim2.new(0, 0, 0, 0)
+                section.ScrollBarThickness = 4
+                section.ZIndex = 1
+
+                layout.Padding = UDim.new(0, 5)
+                layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+                padding.PaddingTop = UDim.new(0, 5)
+                padding.PaddingLeft = UDim.new(0, 10)
+                padding.PaddingRight = UDim.new(0, 10)
+                padding.PaddingBottom = UDim.new(0, 10)
+
+                table.insert(createdSections, section)
+            end
+        end
+
+        local function highlight(selected)
+            tab.BackgroundColor3 = selected and Color3.fromRGB(15, 15, 15) or Color3.fromRGB(35, 35, 35)
+        end
+
+        tab.MouseButton1Click:Connect(function()
+            for _, v in pairs(SectionHolder:GetChildren()) do
+                if v:IsA("Frame") then v.Visible = false end
+            end
+            for _, v in pairs(TabHolder:GetChildren()) do
+                if v:IsA("TextButton") then
+                    v.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                end
+            end
+            content.Visible = true
+            highlight(true)
+        end)
+
+        return {
+            Content = content,
+            Sections = createdSections
+        }
+    end
+
+
+    return Window 
+end
+
+return GUI
