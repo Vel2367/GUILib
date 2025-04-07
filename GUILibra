@@ -7,32 +7,30 @@ end
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
 getgenv().Theme = {
-    Background = Color3.fromRGB(20, 20, 20),
-    Accent = Color3.fromRGB(30, 30, 30),
-    AccentAlt = Color3.fromRGB(50, 50, 50),
-    Highlight = Color3.fromRGB(80, 170, 255),
-    Text = Color3.fromRGB(255, 255, 255),
-    Stroke = Color3.fromRGB(100, 100, 100),
-    Gradient1 = Color3.fromRGB(80, 80, 255),
-    Gradient2 = Color3.fromRGB(255, 80, 255),
-    SelectedTab = Color3.fromRGB(60, 60, 90),
+    Background = Color3.fromRGB(22, 22, 22),
+    Accent = Color3.fromRGB(28, 28, 28),
+    AccentAlt = Color3.fromRGB(40, 40, 40),
+    Highlight = Color3.fromRGB(0, 120, 255),
+    Text = Color3.fromRGB(220, 220, 220),
+    Stroke = Color3.fromRGB(60, 60, 60),
+    Gradient1 = Color3.fromRGB(0, 120, 255),
+    Gradient2 = Color3.fromRGB(255, 0, 200),
+    SelectedTab = Color3.fromRGB(35, 35, 55),
     HoverTab = Color3.fromRGB(45, 45, 65),
     UGLLine = NumberSequence.new{
-        NumberSequenceKeypoint.new(0,0.98),
-        NumberSequenceKeypoint.new(0.25,0),
-        NumberSequenceKeypoint.new(0.5,0),
-        NumberSequenceKeypoint.new(0.75,0),
-        NumberSequenceKeypoint.new(1,0.98)
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(1, 1)
     },
-        BackgroundMain = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 55, 55))
+    BackgroundMain = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 35)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
     },
-    Line = Color3.fromRGB(255, 255, 255),
-    SettingButton = Color3.fromRGB(50, 50, 50),
-    Sections = Color3.fromRGB(20,20,20),
-    UISSections = Color3.fromRGB(70,70,70)
+    Line = Color3.fromRGB(0, 120, 255),
+    SettingButton = Color3.fromRGB(30, 30, 30),
+    Sections = Color3.fromRGB(26, 26, 26),
+    UISSections = Color3.fromRGB(80, 80, 80)
 }
+
 
 local UIS = game:GetService("UserInputService")
 local TS = game:GetService("TweenService")
