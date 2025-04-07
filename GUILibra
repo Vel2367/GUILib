@@ -1,25 +1,44 @@
 local GUI = {}
 
 if game.CoreGui:FindFirstChild("ScriptGui") then
-    game.CoreGui:FindFirstChild("ScriptGui"):Destroy()
+    game.CoreGui.ScriptGui:Destroy()
 end
 
 if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 
-local ScriptGui = Instance.new("ScreenGui")
-ScriptGui.Name = "ScriptGui"
-ScriptGui.Parent = game.CoreGui
-
-local UIS = game:GetService("UserInputService")
-local TS = game:GetService("TweenService")
-local locPlayer = game.Players.LocalPlayer
-local visible, Usable = true, true
-
 getgenv().Theme = {
     Background = Color3.fromRGB(15, 15, 15),
     Accent = Color3.fromRGB(30, 30, 30),
-    Text = Color3.fromRGB(255, 255, 255)
+    AccentAlt = Color3.fromRGB(50, 50, 50),
+    Highlight = Color3.fromRGB(80, 170, 255),
+    Text = Color3.fromRGB(255, 255, 255),
+    Stroke = Color3.fromRGB(100, 100, 100),
+    Gradient1 = Color3.fromRGB(80, 80, 255),
+    Gradient2 = Color3.fromRGB(255, 80, 255),
+    SelectedTab = Color3.fromRGB(60, 60, 90),
+    HoverTab = Color3.fromRGB(45, 45, 65),
+    UGLLine = NumberSequence.new{
+        NumberSequenceKeypoint.new(0,0.98),
+        NumberSequenceKeypoint.new(0.25,0),
+        NumberSequenceKeypoint.new(0.5,0),
+        NumberSequenceKeypoint.new(0.75,0),
+        NumberSequenceKeypoint.new(1,0.98)
+    },
+    BackgroundMain = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
+    },
+    Line = Color3.fromRGB(255, 255, 255),
+    SettingButton = Color3.fromRGB(40, 40, 40)
 }
+
+local UIS = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local visible, Usable = true, true
+
+local ScriptGui = Instance.new("ScreenGui")
+ScriptGui.Name = "ScriptGui"
+ScriptGui.Parent = game.CoreGui
 
 UIS.InputBegan:Connect(function(input, gameProcesses)
     if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
@@ -33,11 +52,13 @@ UIS.InputBegan:Connect(function(input, gameProcesses)
     Usable = true
 end)
 
-function GUI:Window()
-    local Window = {}
+function GUI:Window(config)
+    local Tabs = {}
+    local createdSections = {}
 
     local Main = Instance.new("Frame", ScriptGui)
     local UICMain = Instance.new("UICorner", Main)
+    local UIGMain = Instance.new("UIGradient", Main)
     local Line = Instance.new("Frame", Main)
     local UIGLine = Instance.new("UIGradient", Line)
     local Title = Instance.new("Frame", Main)
@@ -52,19 +73,14 @@ function GUI:Window()
     Main.Position = UDim2.new(0.5,-325,0.5,-225)
     Main.BackgroundColor3 = getgenv().Theme.Background
     UICMain.CornerRadius = UDim.new(0, 8)
+    UIGMain.Color = getgenv().Theme.BackgroundMain
 
     Line.Name = "Line"
     Line.Position = UDim2.new(0.025,0,0.10,0)
     Line.Size = UDim2.new(0.95,0,0,3)
     Line.BorderSizePixel = 0
-    Line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    UIGLine.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0,0.98),
-        NumberSequenceKeypoint.new(0.25,0),
-        NumberSequenceKeypoint.new(0.5,0),
-        NumberSequenceKeypoint.new(0.75,0),
-        NumberSequenceKeypoint.new(1,0.98)
-    }
+    Line.BackgroundColor3 = getgenv().Theme.Line
+    UIGLine.Transparency = getgenv().Theme.UGLLine
 
     Title.Name = "Title"
     Title.Position = UDim2.new(0,0,0,0)
@@ -78,7 +94,6 @@ function GUI:Window()
     TabHolder.BackgroundTransparency = 1
     TabHolder.BorderSizePixel = 0
     TabHolder.ScrollBarThickness = 0
-
     UIGLTabHolder.CellPadding = UDim2.new(0,1,0,7)
     UIGLTabHolder.FillDirection = Enum.FillDirection.Vertical
     UIGLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
@@ -93,23 +108,26 @@ function GUI:Window()
     SettingsButton.Text = "⚙️"
     SettingsButton.Font = Enum.Font.Code
     SettingsButton.TextSize = 18
-    SettingsButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-    SettingsButton.BackgroundColor3 = getgenv().Theme.Background
+    SettingsButton.TextColor3 = getgenv().Theme.Text
+    SettingsButton.BackgroundColor3 = getgenv().Theme.SettingButton
     SettingsButton.Size = UDim2.new(0, 32, 0, 32)
-    SettingsButton.Position = UDim2.new(0.75, 0, 0.07, -16)
+    SettingsButton.Position = UDim2.new(0.8, 0, 0.05, -15)
     SettingsButton.BorderSizePixel = 0
     SettingsButton.AutoButtonColor = false
-
     UICSet.CornerRadius = UDim.new(0, 6)
 
-    local function UIGL(scrollFrame)
+    SettingsButton.MouseButton1Click:Connect(function()
+        print("Открыты настройки GUI")
+    end)
+
+    local function UpdateCanvas(scrollFrame)
         local grid = scrollFrame:FindFirstChildOfClass("UIGridLayout")
         grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             scrollFrame.CanvasSize = UDim2.new(0, 0, 0, grid.AbsoluteContentSize.Y + 10)
             scrollFrame.ScrollingEnabled = grid.AbsoluteContentSize.Y > scrollFrame.AbsoluteSize.Y
         end)
     end
-    UIGL(TabHolder)
+    UpdateCanvas(TabHolder)
 
     local function MakeDrag(frame, handle)
         local dragging = false
@@ -138,118 +156,90 @@ function GUI:Window()
     end
     MakeDrag(Main, Title)
 
-    SettingsButton.MouseButton1Click:Connect(function()
-        print("Открыты настройки GUI")
-    end)
+    for _, tabData in ipairs(config.Tabs or {}) do
+        local tabButton = Instance.new("TextButton", TabHolder)
+        local UICtabButton = Instance.new("UICorner", tabButton)
+        local contentFrame = Instance.new("Frame", SectionHolder)
+        tabButton.Size = UDim2.new(1, 0, 0, 90)
+        tabButton.BorderSizePixel = 0
+        tabButton.BackgroundColor3 = getgenv().Theme.Accent
+        tabButton.Text = tabData.Name
+        tabButton.TextColor3 = getgenv().Theme.Text
+        tabButton.Font = Enum.Font.Code
+        tabButton.TextSize = 16
+        tabButton.AutoButtonColor = false
+        UICtabButton.CornerRadius = UDim.new(0, 10)
 
-    function Window:AddTab(name, icon, sectionList)
-        local tab = Instance.new("TextButton", TabHolder)
-        local UICtab = Instance.new("UICorner", tab)
-        local content = Instance.new("Frame", SectionHolder)
-        local stroke = Instance.new("UIStroke", tab)
-        local createdSections = {}
+        contentFrame.Name = tabData.Name .. "_Content"
+        contentFrame.Size = UDim2.new(1, 0, 1, 0)
+        contentFrame.BackgroundTransparency = 1
+        contentFrame.Visible = false
 
-        stroke.Color = Color3.fromRGB(60, 60, 60)
-        stroke.Thickness = 1
-        stroke.Transparency = 0.8
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-
-        tab.Text = name
-        tab.Size = UDim2.new(1, 0, 0, 90)
-        tab.BorderSizePixel = 0
-        tab.BackgroundColor3 = getgenv().Theme.Background
-        tab.TextColor3 = Color3.fromRGB(200, 200, 200)
-        tab.TextSize = 16
-        tab.Font = Enum.Font.Code
-        tab.AutoButtonColor = false
-
-        UICtab.CornerRadius = UDim.new(0, 10)
-
-        if icon and typeof(icon) == "string" and icon ~= "" then
-            local iconLabel = Instance.new("ImageLabel", tab)
-            iconLabel.Size = UDim2.new(0, 24, 0, 24)
-            iconLabel.Position = UDim2.new(0, 8, 0, 8)
-            iconLabel.BackgroundTransparency = 1
-            iconLabel.Image = icon
-        end
-
-        content.Name = name .. "_Content"
-        content.Size = UDim2.new(1, 0, 1, 0)
-        content.BackgroundTransparency = 1
-        content.Visible = false
-
-
-        if typeof(sectionList) == "table" then
-            for _, opts in ipairs(sectionList) do
-                local sectionWrapper = Instance.new("Frame", content)
-                local titleLabel = Instance.new("TextLabel", sectionWrapper)
-                local section = Instance.new("ScrollingFrame", sectionWrapper)
-                local layout = Instance.new("UIListLayout", section)
-                local padding = Instance.new("UIPadding", section)
-
-                sectionWrapper.Name = opts.Name or "Section"
-                sectionWrapper.BackgroundTransparency = 1
-                sectionWrapper.Size = opts.Size or UDim2.new(0.48, 0, 1, 0)
-                sectionWrapper.Position = opts.Position or UDim2.new(0, 0, 0, 0)
-                
-                titleLabel.Text = opts.Name or "Section"
-                titleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                titleLabel.BackgroundColor3 = getgenv().Theme.Background
-                titleLabel.BorderSizePixel = 0
-                titleLabel.BackgroundTransparency = 1
-                titleLabel.Font = Enum.Font.Code
-                titleLabel.TextSize = 16
-                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-                titleLabel.Size = UDim2.new(1, 0, 0, 18)
-                titleLabel.Position = UDim2.new(0, 0, 0, 0)
-                titleLabel.ZIndex = 2
-
-                section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                section.BorderSizePixel = 0
-                section.Position = UDim2.new(0, 0, 0, 13)
-                section.Size = UDim2.new(1, 0, 1, -13)
-                section.AutomaticCanvasSize = Enum.AutomaticSize.Y
-                section.CanvasSize = UDim2.new(0, 0, 0, 0)
-                section.ScrollBarThickness = 4
-                section.ZIndex = 1
-
-                layout.Padding = UDim.new(0, 5)
-                layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-                padding.PaddingTop = UDim.new(0, 5)
-                padding.PaddingLeft = UDim.new(0, 10)
-                padding.PaddingRight = UDim.new(0, 10)
-                padding.PaddingBottom = UDim.new(0, 10)
-
-                table.insert(createdSections, section)
-            end
-        end
-
-        local function highlight(selected)
-            tab.BackgroundColor3 = selected and Color3.fromRGB(15, 15, 15) or Color3.fromRGB(35, 35, 35)
-        end
-
-        tab.MouseButton1Click:Connect(function()
+        tabButton.MouseButton1Click:Connect(function()
             for _, v in pairs(SectionHolder:GetChildren()) do
                 if v:IsA("Frame") then v.Visible = false end
             end
             for _, v in pairs(TabHolder:GetChildren()) do
                 if v:IsA("TextButton") then
-                    v.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                    v.BackgroundColor3 = getgenv().Theme.Accent
                 end
             end
-            content.Visible = true
-            highlight(true)
+            contentFrame.Visible = true
+            tabButton.BackgroundColor3 = getgenv().Theme.Background
         end)
 
-        return {
-            Content = content,
-            Sections = createdSections
-        }
+        for _, sec in ipairs(tabData.Sections or {}) do
+            local wrapper = Instance.new("Frame", contentFrame)
+            wrapper.Name = sec.Name or "Section"
+            wrapper.BackgroundTransparency = 1
+            wrapper.Size = sec.Size or UDim2.new(0.48, 0, 1, 0)
+            wrapper.Position = sec.Position or UDim2.new(0, 0, 0, 0)
+
+            local label = Instance.new("TextLabel", wrapper)
+            label.Text = sec.Name or "Section"
+            label.TextColor3 = Color3.fromRGB(190, 190, 190)
+            label.BackgroundTransparency = 1
+            label.Font = Enum.Font.Code
+            label.TextSize = 16
+            label.TextXAlignment = Enum.TextXAlignment.Left
+            label.Size = UDim2.new(1, 0, 0, 18)
+
+            local section = Instance.new("ScrollingFrame", wrapper)
+            section.Size = UDim2.new(1, 0, 1, -18)
+            section.Position = UDim2.new(0, 0, 0, 18)
+            section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            section.BorderSizePixel = 0
+            section.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            section.CanvasSize = UDim2.new(0, 0, 0, 0)
+            section.ScrollBarThickness = 4
+
+            local layout = Instance.new("UIListLayout", section)
+            layout.Padding = UDim.new(0, 5)
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+            
+            local padding = Instance.new("UIPadding", section)
+            padding.PaddingTop = UDim.new(0, 5)
+            padding.PaddingLeft = UDim.new(0, 10)
+            padding.PaddingRight = UDim.new(0, 10)
+            padding.PaddingBottom = UDim.new(0, 10)
+
+            table.insert(createdSections, section)
+        end
+
+        table.insert(Tabs, {Button = tabButton, Content = contentFrame})
     end
 
+    if Tabs[1] then
+        Tabs[1].Button.MouseButton1Click:Connect(function() end)
+        Tabs[1].Button.MouseButton1Click:Fire()
+        Tabs[1].Content.Visible = true
+        Tabs[1].Button.BackgroundColor3 = getgenv().Theme.Background
+    end
 
-    return Window 
+    return {
+        Sections = createdSections,
+        Main = Main
+    }
 end
 
 return GUI
