@@ -15,6 +15,12 @@ local TS = game:GetService("TweenService")
 local locPlayer = game.Players.LocalPlayer
 local visible, Usable = true, true
 
+getgenv().Theme = {
+    Background = Color3.fromRGB(15, 15, 15),
+    Accent = Color3.fromRGB(30, 30, 30),
+    Text = Color3.fromRGB(255, 255, 255)
+}
+
 UIS.InputBegan:Connect(function(input, gameProcesses)
     if gameProcesses or input.KeyCode ~= _G.HideKeybind or not Usable then return end
     Usable = false
@@ -38,11 +44,13 @@ function GUI:Window()
     local TabHolder = Instance.new("ScrollingFrame", Main)
     local UIGLTabHolder = Instance.new("UIGridLayout", TabHolder)
     local SectionHolder = Instance.new("Frame", Main)
+    local SettingsButton = Instance.new("TextButton", Main)
+    local UICSet = Instance.new("UICorner", SettingsButton)
 
     Main.Name = "Main"
     Main.Size = UDim2.new(0,650,0,450)
     Main.Position = UDim2.new(0.5,-325,0.5,-225)
-    Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Main.BackgroundColor3 = getgenv().Theme.Background
     UICMain.CornerRadius = UDim.new(0, 8)
 
     Line.Name = "Line"
@@ -82,6 +90,18 @@ function GUI:Window()
     SectionHolder.BackgroundTransparency = 1
     SectionHolder.BorderSizePixel = 0
 
+    SettingsButton.Text = "⚙️"
+    SettingsButton.Font = Enum.Font.Code
+    SettingsButton.TextSize = 18
+    SettingsButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    SettingsButton.BackgroundColor3 = getgenv().Theme.Background
+    SettingsButton.Size = UDim2.new(0, 32, 0, 32)
+    SettingsButton.Position = UDim2.new(0.75, 0, 0.07, -16)
+    SettingsButton.BorderSizePixel = 0
+    SettingsButton.AutoButtonColor = false
+
+    UICSet.CornerRadius = UDim.new(0, 6)
+
     local function UIGL(scrollFrame)
         local grid = scrollFrame:FindFirstChildOfClass("UIGridLayout")
         grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -118,16 +138,26 @@ function GUI:Window()
     end
     MakeDrag(Main, Title)
 
+    SettingsButton.MouseButton1Click:Connect(function()
+        print("Открыты настройки GUI")
+    end)
+
     function Window:AddTab(name, icon, sectionList)
         local tab = Instance.new("TextButton", TabHolder)
         local UICtab = Instance.new("UICorner", tab)
         local content = Instance.new("Frame", SectionHolder)
+        local stroke = Instance.new("UIStroke", tab)
         local createdSections = {}
+
+        stroke.Color = Color3.fromRGB(60, 60, 60)
+        stroke.Thickness = 1
+        stroke.Transparency = 0.8
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
         tab.Text = name
         tab.Size = UDim2.new(1, 0, 0, 90)
         tab.BorderSizePixel = 0
-        tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        tab.BackgroundColor3 = getgenv().Theme.Background
         tab.TextColor3 = Color3.fromRGB(200, 200, 200)
         tab.TextSize = 16
         tab.Font = Enum.Font.Code
@@ -164,7 +194,7 @@ function GUI:Window()
                 
                 titleLabel.Text = opts.Name or "Section"
                 titleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                titleLabel.BackgroundColor3 = getgenv().Theme.Background
                 titleLabel.BorderSizePixel = 0
                 titleLabel.BackgroundTransparency = 1
                 titleLabel.Font = Enum.Font.Code
