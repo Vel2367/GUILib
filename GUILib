@@ -150,9 +150,7 @@ function GUI:Window()
             for _, opts in ipairs(sectionList) do
                 local sectionWrapper = Instance.new("Frame", content)
                 local titleLabel = Instance.new("TextLabel", sectionWrapper)
-                local underline = Instance.new("Frame", sectionWrapper)
                 local section = Instance.new("ScrollingFrame", sectionWrapper)
-                local corner = Instance.new("UICorner", section)
                 local layout = Instance.new("UIListLayout", section)
                 local padding = Instance.new("UIPadding", section)
 
@@ -162,31 +160,27 @@ function GUI:Window()
 
                 titleLabel.Text = opts.Name or "Section"
                 titleLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
-                titleLabel.BackgroundTransparency = 1
+                titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                titleLabel.BorderSizePixel = 0
                 titleLabel.Font = Enum.Font.Code
-                titleLabel.TextSize = 15
+                titleLabel.TextSize = 14
                 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-                titleLabel.Size = UDim2.new(1, -12, 0, 14)
-                titleLabel.Position = UDim2.new(0, 6, 0, 0)
-
-                underline.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-                underline.BorderSizePixel = 0
-                underline.Position = UDim2.new(0, 6, 0, 20)
-                underline.Size = UDim2.new(1, -12, 0, 1)
+                titleLabel.Size = UDim2.new(1, 0, 0, 18)
+                titleLabel.Position = UDim2.new(0, 0, 0, 0)
+                titleLabel.ZIndex = 2
 
                 section.Name = opts.Name or "Section"
                 section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 section.BorderSizePixel = 0
-                section.Position = UDim2.new(0, 0, 0, 26)
-                section.Size = UDim2.new(1, 0, 1, -26)
+                section.Position = UDim2.new(0, 0, 0, 18)
+                section.Size = UDim2.new(1, 0, 1, -18)
                 section.AutomaticCanvasSize = Enum.AutomaticSize.Y
                 section.CanvasSize = UDim2.new(0, 0, 0, 0)
                 section.ScrollBarThickness = 4
-
-                corner.CornerRadius = UDim.new(0, 6)
+                section.ZIndex = 1
 
                 layout.Padding = UDim.new(0, 5)
-                layout.SortOrder = Enum.SortOrder.Custom
+                layout.SortOrder = Enum.SortOrder.LayoutOrder
 
                 padding.PaddingTop = UDim.new(0, 5)
                 padding.PaddingLeft = UDim.new(0, 10)
