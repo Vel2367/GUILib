@@ -25,11 +25,11 @@ getgenv().Theme = {
         NumberSequenceKeypoint.new(1,0.98)
     },
         BackgroundMain = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 40)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 55, 55))
     },
     Line = Color3.fromRGB(255, 255, 255),
-    SettingButton = Color3.fromRGB(40, 40, 40)
+    SettingButton = Color3.fromRGB(70, 70, 70)
 }
 
 local UIS = game:GetService("UserInputService")
@@ -73,6 +73,7 @@ function GUI:Window(config)
     Main.Position = UDim2.new(0.5,-325,0.5,-225)
     UICMain.CornerRadius = UDim.new(0, 8)
     UIGMain.Color = getgenv().Theme.BackgroundMain
+    UIGMain.Rotation = 40
 
     Line.Name = "Line"
     Line.Position = UDim2.new(0.025,0,0.10,0)
@@ -206,7 +207,7 @@ function GUI:Window(config)
             label.Font = Enum.Font.Code
             label.TextSize = 16
             label.TextXAlignment = Enum.TextXAlignment.Left
-            label.Size = UDim2.new(1, 0, 0, 20)
+            label.Size = UDim2.new(1, 0, 0, 18)
 
             section.Size = UDim2.new(1, 0, 1, -18)
             section.Position = UDim2.new(0, 0, 0, 18)
