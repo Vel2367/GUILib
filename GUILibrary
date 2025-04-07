@@ -190,12 +190,16 @@ function GUI:Window(config)
 
         for _, sec in ipairs(tabData.Sections or {}) do
             local wrapper = Instance.new("Frame", contentFrame)
+            local label = Instance.new("TextLabel", wrapper)
+            local section = Instance.new("ScrollingFrame", wrapper)
+            local layout = Instance.new("UIListLayout", section)
+            local padding = Instance.new("UIPadding", section)
+            
             wrapper.Name = sec.Name or "Section"
             wrapper.BackgroundTransparency = 1
             wrapper.Size = sec.Size or UDim2.new(0.48, 0, 1, 0)
             wrapper.Position = sec.Position or UDim2.new(0, 0, 0, 0)
 
-            local label = Instance.new("TextLabel", wrapper)
             label.Text = sec.Name or "Section"
             label.TextColor3 = Color3.fromRGB(190, 190, 190)
             label.BackgroundTransparency = 1
@@ -204,7 +208,6 @@ function GUI:Window(config)
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Size = UDim2.new(1, 0, 0, 18)
 
-            local section = Instance.new("ScrollingFrame", wrapper)
             section.Size = UDim2.new(1, 0, 1, -18)
             section.Position = UDim2.new(0, 0, 0, 18)
             section.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -213,11 +216,9 @@ function GUI:Window(config)
             section.CanvasSize = UDim2.new(0, 0, 0, 0)
             section.ScrollBarThickness = 4
 
-            local layout = Instance.new("UIListLayout", section)
             layout.Padding = UDim.new(0, 5)
             layout.SortOrder = Enum.SortOrder.LayoutOrder
             
-            local padding = Instance.new("UIPadding", section)
             padding.PaddingTop = UDim.new(0, 5)
             padding.PaddingLeft = UDim.new(0, 10)
             padding.PaddingRight = UDim.new(0, 10)
