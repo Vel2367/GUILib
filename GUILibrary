@@ -263,7 +263,7 @@ function GUI:Window(config)
         location[flag] = default
         section.Flags[flag] = default
 
-        local Toggle = Instance.new("Frame", section)
+        local Toggle = Instance.new("Frame", section.Container)
         local Holder = Instance.new("Frame", Toggle)
         local toggle = Instance.new("TextButton", Holder)
         local Label = Instance.new("TextButton", Toggle)
