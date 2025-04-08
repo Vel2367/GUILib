@@ -254,62 +254,80 @@ function GUI:Window(config)
         Tabs[1].Button.BackgroundColor3 = getgenv().Theme.Background
     end
 
-    function GUI:AddToggle(section, name, options, callback)
+    function GUI:Toggle(name, options, callback)
         local default = options.default or false
-        local location = options.location or section.Flags
-        local flag = options.flag or name
+        local flag = options.flag or name -- флаг можно не указывать
+        local section = options.section
         callback = callback or function() end
 
-        location[flag] = default
-        section.Flags[flag] = default
+        if not section or not section.Container or not section.Flags then
+            warn("Невалидная секция в Toggle!")
+            return
+        end
 
-        local Toggle = Instance.new("Frame", section.Container)
+        section.Flags[flag] = default
+        if default then
+            task.spawn(callback, true)
+        end
+
+        local Toggle = Instance.new("Frame")
         local Holder = Instance.new("Frame", Toggle)
         local toggle = Instance.new("TextButton", Holder)
-        local Label = Instance.new("TextButton", Toggle)
-        
+        local Text_2 = Instance.new("TextButton", Toggle)
+
+        Toggle.Name = "Toggle"
+        Toggle.Parent = section.Container
+        Toggle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Toggle.BackgroundTransparency = 1.000
         Toggle.Size = UDim2.new(1, 0, 0, 25)
-        Toggle.BackgroundTransparency = 1
 
+        Holder.Name = "Holder"
         Holder.AnchorPoint = Vector2.new(1, 0.5)
-        Holder.Size = UDim2.new(0, 35, 0, 25)
-        Holder.Position = UDim2.new(1, 0, 0.5, 0)
         Holder.BackgroundTransparency = 1
+        Holder.Position = UDim2.new(1, 0, 0.5, 0)
+        Holder.Size = UDim2.new(0, 25, 0, 25)
 
+        toggle.Name = "On"
         toggle.Size = UDim2.new(1, 0, 1, 0)
+        toggle.BackgroundTransparency = 1
         toggle.Font = Enum.Font.GothamBold
         toggle.TextSize = 12
-        toggle.BackgroundTransparency = 1
-        toggle.TextXAlignment = Enum.TextXAlignment.Center
+        toggle.TextXAlignment = Enum.TextXAlignment.Left
 
-        Label.Size = UDim2.new(1, -40, 1, 0)
-        Label.BackgroundTransparency = 1
-        Label.Font = Enum.Font.GothamBold
-        Label.TextSize = 12
-        Label.Text = name
-        Label.TextColor3 = getgenv().Theme.Text
-        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Text_2.Name = "Text"
+        Text_2.Active = false
+        Text_2.BackgroundTransparency = 1
+        Text_2.Size = UDim2.new(1, 0, 1, 0)
+        Text_2.Font = Enum.Font.GothamBold
+        Text_2.Text = name
+        Text_2.TextColor3 = getgenv().Theme.Text
+        Text_2.TextSize = 12
+        Text_2.TextStrokeColor3 = getgenv().Theme.Text
+        Text_2.TextStrokeTransparency = 0.920
+        Text_2.TextXAlignment = Enum.TextXAlignment.Left
 
-        local function Refresh()
-            if location[flag] then
+        local function updateState(state)
+            if state then
                 toggle.Text = "On"
-                toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
-                toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
+                toggle.TextColor3 = Color3.fromRGB(0,255,0)
+                toggle.TextStrokeColor3 = Color3.fromRGB(0,255,0)
             else
                 toggle.Text = "Off"
-                toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
-                toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
+                toggle.TextColor3 = Color3.fromRGB(255,0,0)
+                toggle.TextStrokeColor3 = Color3.fromRGB(255,0,0)
             end
         end
 
+        updateState(default)
+
         toggle.MouseButton1Click:Connect(function()
-            location[flag] = not location[flag]
-            section.Flags[flag] = location[flag]
-            Refresh()
-            task.spawn(callback)
+            local newState = not section.Flags[flag]
+            section.Flags[flag] = newState
+            updateState(newState)
+            task.spawn(callback, newState)
         end)
 
-        Refresh()
+        return Toggle
     end
 
     return {
