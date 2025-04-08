@@ -9,7 +9,6 @@ if _G.HideKeybind == nil then _G.HideKeybind = Enum.KeyCode.P end
 getgenv().Theme = {
     Background = Color3.fromRGB(22, 22, 22),
     Accent = Color3.fromRGB(28, 28, 28),
-    AccentAlt = Color3.fromRGB(40, 40, 40),
     Highlight = Color3.fromRGB(0, 120, 255),
     Text = Color3.fromRGB(220, 220, 220),
     Stroke = Color3.fromRGB(60, 60, 60),
@@ -56,8 +55,7 @@ UIS.InputBegan:Connect(function(input, gameProcesses)
 end)
 
 function GUI:Window(config)
-    local Tabs = {}
-    local createdSections = {}
+    local Tabs, createdSections = {}, {}
 
     local Main = Instance.new("Frame", ScriptGui)
     local UICMain = Instance.new("UICorner", Main)
@@ -245,6 +243,64 @@ function GUI:Window(config)
         Tabs[1].Button.MouseButton1Click:Fire()
         Tabs[1].Content.Visible = true
         Tabs[1].Button.BackgroundColor3 = getgenv().Theme.Background
+    end
+
+    function GUI:AddToggle(section, name, options, callback)
+        local default = options.default or false
+        local location = options.location or section.Flags or {}
+        local flag = options.flag or name
+        callback = callback or function() end
+
+        section.Flags = section.Flags or {}
+        location[flag] = default
+        section.Flags[flag] = default
+
+        local Toggle = Instance.new("Frame", section)
+        Toggle.Size = UDim2.new(1, 0, 0, 25)
+        Toggle.BackgroundTransparency = 1
+
+        local Holder = Instance.new("Frame", Toggle)
+        Holder.AnchorPoint = Vector2.new(1, 0.5)
+        Holder.Size = UDim2.new(0, 35, 0, 25)
+        Holder.Position = UDim2.new(1, 0, 0.5, 0)
+        Holder.BackgroundTransparency = 1
+
+        local toggle = Instance.new("TextButton", Holder)
+        toggle.Size = UDim2.new(1, 0, 1, 0)
+        toggle.Font = Enum.Font.GothamBold
+        toggle.TextSize = 12
+        toggle.BackgroundTransparency = 1
+        toggle.TextXAlignment = Enum.TextXAlignment.Right
+
+        local Label = Instance.new("TextButton", Toggle)
+        Label.Size = UDim2.new(1, -40, 1, 0)
+        Label.BackgroundTransparency = 1
+        Label.Font = Enum.Font.GothamBold
+        Label.TextSize = 12
+        Label.Text = name
+        Label.TextColor3 = getgenv().Theme.Text
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+
+        local function Refresh()
+            if location[flag] then
+                toggle.Text = "On"
+                toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
+                toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
+            else
+                toggle.Text = "Off"
+                toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
+                toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
+            end
+        end
+
+        Label.MouseButton1Click:Connect(function()
+            location[flag] = not location[flag]
+            section.Flags[flag] = location[flag]
+            Refresh()
+            task.spawn(callback)
+        end)
+
+        Refresh()
     end
 
     return {
