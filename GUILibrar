@@ -232,6 +232,7 @@ function GUI:Window(config)
             padding.PaddingRight = UDim.new(0, 10)
             padding.PaddingBottom = UDim.new(0, 10)
 
+            section.Flags = {}
             table.insert(createdSections, section)
         end
 
