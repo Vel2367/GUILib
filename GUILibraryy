@@ -232,8 +232,10 @@ function GUI:Window(config)
             padding.PaddingRight = UDim.new(0, 10)
             padding.PaddingBottom = UDim.new(0, 10)
 
-            section.Flags = {}
-            table.insert(createdSections, section)
+            table.insert(createdSections, {
+                Container = section,
+                Flags = {}
+            })
         end
 
         table.insert(Tabs, {Button = tabButton, Content = contentFrame})
@@ -254,32 +256,32 @@ function GUI:Window(config)
 
     function GUI:AddToggle(section, name, options, callback)
         local default = options.default or false
-        local location = options.location or section.Flags or {}
+        local location = options.location or section.Flags
         local flag = options.flag or name
         callback = callback or function() end
 
-        section.Flags = section.Flags or {}
         location[flag] = default
         section.Flags[flag] = default
 
         local Toggle = Instance.new("Frame", section)
+        local Holder = Instance.new("Frame", Toggle)
+        local toggle = Instance.new("TextButton", Holder)
+        local Label = Instance.new("TextButton", Toggle)
+        
         Toggle.Size = UDim2.new(1, 0, 0, 25)
         Toggle.BackgroundTransparency = 1
 
-        local Holder = Instance.new("Frame", Toggle)
         Holder.AnchorPoint = Vector2.new(1, 0.5)
         Holder.Size = UDim2.new(0, 35, 0, 25)
         Holder.Position = UDim2.new(1, 0, 0.5, 0)
         Holder.BackgroundTransparency = 1
 
-        local toggle = Instance.new("TextButton", Holder)
         toggle.Size = UDim2.new(1, 0, 1, 0)
         toggle.Font = Enum.Font.GothamBold
         toggle.TextSize = 12
         toggle.BackgroundTransparency = 1
         toggle.TextXAlignment = Enum.TextXAlignment.Right
 
-        local Label = Instance.new("TextButton", Toggle)
         Label.Size = UDim2.new(1, -40, 1, 0)
         Label.BackgroundTransparency = 1
         Label.Font = Enum.Font.GothamBold
