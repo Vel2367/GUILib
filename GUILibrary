@@ -239,8 +239,14 @@ function GUI:Window(config)
     end
 
     if Tabs[1] then
-        Tabs[1].Button.MouseButton1Click:Connect(function() end)
-        Tabs[1].Button.MouseButton1Click:Fire()
+        for _, v in pairs(SectionHolder:GetChildren()) do
+            if v:IsA("Frame") then v.Visible = false end
+        end
+        for _, v in pairs(TabHolder:GetChildren()) do
+            if v:IsA("TextButton") then
+                v.BackgroundColor3 = getgenv().Theme.Accent
+            end
+        end
         Tabs[1].Content.Visible = true
         Tabs[1].Button.BackgroundColor3 = getgenv().Theme.Background
     end
