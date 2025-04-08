@@ -33,7 +33,6 @@ getgenv().Theme = {
     UISSections = Color3.fromRGB(80, 80, 80)
 }
 
-
 local UIS = game:GetService("UserInputService")
 local TS = game:GetService("TweenService")
 local visible, Usable = true, true
@@ -70,39 +69,39 @@ function GUI:Window(config)
     local UICSet = Instance.new("UICorner", SettingsButton)
 
     Main.Name = "Main"
-    Main.Size = UDim2.new(0,650,0,450)
-    Main.Position = UDim2.new(0.5,-325,0.5,-225)
+    Main.Size = UDim2.new(0, 650, 0, 450)
+    Main.Position = UDim2.new(0.5, -325, 0.5, -225)
     UICMain.CornerRadius = UDim.new(0, 8)
     UIGMain.Color = getgenv().Theme.BackgroundMain
     UIGMain.Rotation = 40
 
     Line.Name = "Line"
-    Line.Position = UDim2.new(0.025,0,0.10,0)
-    Line.Size = UDim2.new(0.95,0,0,3)
+    Line.Position = UDim2.new(0.025, 0, 0.10, 0)
+    Line.Size = UDim2.new(0.95, 0, 0, 3)
     Line.BorderSizePixel = 0
     Line.BackgroundColor3 = getgenv().Theme.Line
     UIGLine.Transparency = getgenv().Theme.UGLLine
 
     Title.Name = "Title"
-    Title.Position = UDim2.new(0,0,0,0)
-    Title.Size = UDim2.new(1,0,0.15,0)
+    Title.Position = UDim2.new(0, 0, 0, 0)
+    Title.Size = UDim2.new(1, 0, 0.15, 0)
     Title.BackgroundTransparency = 1
     Title.BorderSizePixel = 0
 
     TabHolder.Name = "TabsHolder"
-    TabHolder.Position = UDim2.new(0.025,0,0.175,0)
-    TabHolder.Size = UDim2.new(0.15,0,0.8,0)
+    TabHolder.Position = UDim2.new(0.025, 0, 0.175, 0)
+    TabHolder.Size = UDim2.new(0.15, 0, 0.8, 0)
     TabHolder.BackgroundTransparency = 1
     TabHolder.BorderSizePixel = 0
     TabHolder.ScrollBarThickness = 0
-    UIGLTabHolder.CellPadding = UDim2.new(0,1,0,7)
+    UIGLTabHolder.CellPadding = UDim2.new(0, 1, 0, 7)
     UIGLTabHolder.FillDirection = Enum.FillDirection.Vertical
     UIGLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
-    UIGLTabHolder.CellSize = UDim2.new(1,0,0,65)
+    UIGLTabHolder.CellSize = UDim2.new(1, 0, 0, 65)
 
     SectionHolder.Name = "SectionsHolder"
-    SectionHolder.Position = UDim2.new(0.2,0,0.175,0)
-    SectionHolder.Size = UDim2.new(0.775,0,0.8,0)
+    SectionHolder.Position = UDim2.new(0.2, 0, 0.175, 0)
+    SectionHolder.Size = UDim2.new(0.775, 0, 0.8, 0)
     SectionHolder.BackgroundTransparency = 1
     SectionHolder.BorderSizePixel = 0
 
@@ -256,7 +255,7 @@ function GUI:Window(config)
 
     function GUI:Toggle(name, options, callback)
         local default = options.default or false
-        local flag = options.flag or name -- флаг можно не указывать
+        local flag = options.flag or name
         local section = options.section
         callback = callback or function() end
 
