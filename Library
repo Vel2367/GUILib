@@ -5,17 +5,6 @@ if _G.HideGuiBind == nil then _G.HideGuiBind = Enum.KeyCode.P end
 
 local ScriptGui = Instance.new("ScreenGui", game:GetService("CoreGui")); ScriptGui.Name = "ScriptGui"
 
-local LT: number = 0
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcesses)
-    if gameProcesses then return end
-    if input.KeyCode == _G.HideGuiBind then
-        if tick() - LT < 0.3 then return end
-        LT = tick()
-
-    end
-end)
-
-
 getgenv().Theme = {
     BackgroundMain = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 35)),
@@ -145,6 +134,45 @@ function GUILibrary:Window()
     end
     MakeDrag(Main, Title)
 
+    function Window:SetVisible(state: boolean)
+        self.Visible = state
+        Main.Visible = state
+        if state then
+            for _, v in pairs(SectionHolder:GetChildren()) do
+                if v:IsA("Frame") then
+                    v.Visible = false
+                end
+            end
+            for _, v in pairs(TabHolder:GetChildren()) do
+                if v:IsA("TextButton") then
+                    v.BackgroundColor3 = getgenv().Theme.Accent
+                    if v:FindFirstChild("FlagFrame") then v.FlagFrame:Destroy() end
+                end
+            end
+            if self.ActiveTab then
+                local tabName = self.ActiveTab.name
+                local sectionFrame = SectionHolder:FindFirstChild(tabName .. "_Section")
+                local tabButton = TabHolder:FindFirstChild(tabName)
+                if sectionFrame then
+                    sectionFrame.Visible = true
+                end
+                if tabButton then
+                    tabButton.BackgroundColor3 = getgenv().Theme.Background
+                    local flag = Instance.new("Frame", tabButton)
+                    flag.Name = "FlagFrame"
+                    flag.Position = UDim2.new(0,3,0,-1)
+                    flag.Size = UDim2.new(0.02,0,1,0)
+                    flag.BorderSizePixel = 0
+                    flag.BackgroundColor3 = getgenv().Theme.BackgroundLine
+                    local grad = Instance.new("UIGradient", flag)
+                    grad.Transparency = getgenv().Theme.UGLLine
+                    grad.Rotation = 90
+                end
+            end
+        end
+    end
+
+
     function Window:Tab(config)
         local Tab = {}
         Tab.name = config.Name
@@ -161,7 +189,7 @@ function GUILibrary:Window()
         TabButton.Text = config.Name
         TabButton.TextColor3 = getgenv().Theme.Text
         TabButton.Font = Enum.Font.Gotham
-        TabButton.TextSize = 17
+        TabButton.TextSize = 16
         TabButton.AutoButtonColor = false
         UICTabButton.CornerRadius = UDim.new(0, 8)
 
@@ -258,4 +286,18 @@ function GUILibrary:Window()
     
     return Window
 end
+
+local LT: number = 0
+local Window = GUILibrary:Window()
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == _G.HideGuiBind then
+        if tick() - LT < 0.3 then return end
+        LT = tick()
+
+        Window:SetVisible(not Window.Visible)
+    end
+end)
+
 return GUILibrary
