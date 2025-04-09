@@ -292,11 +292,12 @@ local Window = GUILibrary:Window()
 
 game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    print("Key pressed:", input.KeyCode)
     if input.KeyCode == _G.HideGuiBind then
         if tick() - LT < 0.3 then return end
         LT = tick()
-
         Window:SetVisible(not Window.Visible)
+        print("Window visibility toggled to:", Window.Visible)
     end
 end)
 
