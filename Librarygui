@@ -257,7 +257,7 @@ function GUILibrary:Window()
                     task.spawn(callback, true)
                 end
 
-                local Toggle = Instance.new("Frame", options.section)
+                local Toggle = Instance.new("Frame", self.Section)
                 local Holder = Instance.new("Frame", Toggle)
                 local toggle = Instance.new("TextButton", Holder)
                 local Text_2 = Instance.new("TextButton", Toggle)
