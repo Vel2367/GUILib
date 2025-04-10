@@ -263,7 +263,6 @@ function GUILibrary:Window()
                 local Text_2 = Instance.new("TextButton", Toggle)
                         
                 Toggle.Name = "Toggle"
-                Toggle.Parent = section.Container
                 Toggle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 Toggle.BackgroundTransparency = 1
                 Toggle.Size = UDim2.new(1, 0, 0, 25)
