@@ -196,6 +196,7 @@ function GUILibrary:Window()
         end)
 
 
+
         function Tab:Section(config)
             local Section = {}
             self.Tabs.Sections[config.Name] = Section
@@ -315,7 +316,8 @@ function GUILibrary:Window()
 
                     spawn(callback)
                 end)
-
+            end
+            
             UpdateCanvas(section)
             return Section
         end
