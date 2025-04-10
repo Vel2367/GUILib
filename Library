@@ -1,7 +1,7 @@
 local GUILibrary = {}
 
 if game:GetService("CoreGui"):FindFirstChild("ScriptGui") then game.CoreGui.ScriptGui:Destroy() end
-if not _G.HideGuiBind  then _G.HideGuiBind = Enum.KeyCode.P end
+if not _G.HideGuiBind then _G.HideGuiBind = Enum.KeyCode.P end
 
 local ScriptGui = Instance.new("ScreenGui", game:GetService("CoreGui")); ScriptGui.Name = "ScriptGui"
 
@@ -142,7 +142,6 @@ function GUILibrary:Window()
 
     function Window:Tab(config)
         local Tab = {}
-        Tab.name = config.Name
         Window.Tabs[config.Name] = Tab
         Tab.Sections = {}
 
@@ -199,8 +198,8 @@ function GUILibrary:Window()
 
         function Tab:Section(config)
             local Section = {}
-            Section.name = config.Name
-            Tab.Sections[config.Name] = Section
+            self.Tabs.Sections[config.Name] = Section
+            Section.Flags = {}
 
             local wrapper = Instance.new("Frame", SectionFrame)
             local label = Instance.new("TextLabel", wrapper)
@@ -247,17 +246,16 @@ function GUILibrary:Window()
             function Section:Toggle(name, options, callback)
                 local default = options.default or false
                 local flag = options.flag or name
+                local state = options.state or false
                 callback = callback or function() end
-
-                Section.Flags = Section.Flags or {}
-                Section.Flags[flag] = default
-
+                
+                self.Section.Flags[flag] = state
                 
                 if default then
-                    task.spawn(callback, true)
+                    task.spawn(callback)
                 end
 
-                local Toggle = Instance.new("Frame", self.Section)
+                local Toggle = Instance.new("Frame", self.Frame)
                 local Holder = Instance.new("Frame", Toggle)
                 local toggle = Instance.new("TextButton", Holder)
                 local Text_2 = Instance.new("TextButton", Toggle)
@@ -292,21 +290,31 @@ function GUILibrary:Window()
                 Text_2.TextStrokeTransparency = 0.92
                 Text_2.TextXAlignment = Enum.TextXAlignment.Left
 
-                local function updateState(state)
-                    Section.Flags[flag] = state
-                    toggle.Text = state and "On" or "Off"
-                    toggle.TextColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-                    spawn(callback(state))
+                if self.Section.Flags[flag] then
+                    toggle.Text = "On"
+                    toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
+                    toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
+                else
+                    toggle.Text = "Off"
+                    toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
                 end
 
-                toggle.MouseButton1Click:Connect(function()
-                    updateState(not Section.Flags[flag])
-                end)
+                Text_2.MouseButton1Click:Connect(function()
+                    if self.Section.Flags[flag] then
+                        self.Section.Flags[flag] = false
+                        toggle.Text = "Off"
+                        toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
+                        toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
+                    else
+                        self.Section.Flags[flag] = true
+                        toggle.Text = "On"
+                        toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
+                        toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
+                    end
 
-                label.MouseButton1Click:Connect(function()
-                    updateState(not Section.Flags[flag])
+                    spawn(callback)
                 end)
-            end
 
             UpdateCanvas(section)
             return Section
