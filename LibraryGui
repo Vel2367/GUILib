@@ -244,6 +244,71 @@ function GUILibrary:Window()
             UIPsection.PaddingRight = UDim.new(0, 10)
             UIPsection.PaddingBottom = UDim.new(0, 10)
 
+            function Section:Toggle(name, options, callback)
+                local default = options.default or false
+                local flag = options.flag or name
+                callback = callback or function() end
+
+                Section.Flags = Section.Flags or {}
+                Section.Flags[flag] = default
+
+                
+                if default then
+                    task.spawn(callback, true)
+                end
+
+                local Toggle = Instance.new("Frame", options.section)
+                local Holder = Instance.new("Frame", Toggle)
+                local toggle = Instance.new("TextButton", Holder)
+                local Text_2 = Instance.new("TextButton", Toggle)
+                        
+                Toggle.Name = "Toggle"
+                Toggle.Parent = section.Container
+                Toggle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                Toggle.BackgroundTransparency = 1
+                Toggle.Size = UDim2.new(1, 0, 0, 25)
+
+                Holder.Name = "Holder"
+                Holder.AnchorPoint = Vector2.new(1, 0.5)
+                Holder.BackgroundTransparency = 1
+                Holder.Position = UDim2.new(1, 0, 0.5, 0)
+                Holder.Size = UDim2.new(0, 25, 0, 25)
+
+                toggle.Name = "Off"
+                toggle.Size = UDim2.new(1, 0, 1, 0)
+                toggle.BackgroundTransparency = 1
+                toggle.Font = Enum.Font.GothamBold
+                toggle.TextSize = 12
+                toggle.TextXAlignment = Enum.TextXAlignment.Left
+
+                Text_2.Name = "Text"
+                Text_2.Active = false
+                Text_2.BackgroundTransparency = 1
+                Text_2.Size = UDim2.new(1, 0, 1, 0)
+                Text_2.Font = Enum.Font.GothamBold
+                Text_2.Text = name
+                Text_2.TextColor3 = getgenv().Theme.Text
+                Text_2.TextSize = 12
+                Text_2.TextStrokeColor3 = getgenv().Theme.Text
+                Text_2.TextStrokeTransparency = 0.92
+                Text_2.TextXAlignment = Enum.TextXAlignment.Left
+
+                local function updateState(state)
+                    Section.Flags[flag] = state
+                    toggle.Text = state and "On" or "Off"
+                    toggle.TextColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+                    spawn(callback(state))
+                end
+
+                toggle.MouseButton1Click:Connect(function()
+                    updateState(not Section.Flags[flag])
+                end)
+
+                label.MouseButton1Click:Connect(function()
+                    updateState(not Section.Flags[flag])
+                end)
+            end
+
             UpdateCanvas(section)
             return Section
         end
