@@ -1,9 +1,13 @@
 local GUILibrary = {}
 
-if game:GetService("CoreGui"):FindFirstChild("ScriptGui") then game.CoreGui.ScriptGui:Destroy() end
+if game:GetService("CoreGui"):FindFirstChild("ScriptGui") then
+    game.CoreGui.ScriptGui:Destroy()
+end
+
 if not _G.HideGuiBind then _G.HideGuiBind = Enum.KeyCode.P end
 
-local ScriptGui = Instance.new("ScreenGui", game:GetService("CoreGui")); ScriptGui.Name = "ScriptGui"
+local ScriptGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ScriptGui.Name = "ScriptGui"
 
 getgenv().Theme = {
     BackgroundMain = ColorSequence.new{
@@ -30,6 +34,8 @@ getgenv().Theme = {
     TextSections = Color3.fromRGB(190, 190, 190),
     UISSections = Color3.fromRGB(80, 80, 80)
 }
+
+
 
 function GUILibrary:Window()
     local Window = {
@@ -142,8 +148,8 @@ function GUILibrary:Window()
 
     function Window:Tab(config)
         local Tab = {}
-        Window.Tabs[config.Name] = Tab
         Tab.Sections = {}
+        Window.Tabs[config.Name] = Tab
 
         local TabButton = Instance.new("TextButton", TabHolder)
         local UICTabButton = Instance.new("UICorner", TabButton)
@@ -199,8 +205,8 @@ function GUILibrary:Window()
 
         function Tab:Section(config)
             local Section = {}
-            self.Tabs.Sections[config.Name] = Section
             Section.Flags = {}
+            Tab.Sections[config.Name] = Section 
 
             local wrapper = Instance.new("Frame", SectionFrame)
             local label = Instance.new("TextLabel", wrapper)
