@@ -256,7 +256,7 @@ function GUILibrary:Window()
                 local state = options.state or false
                 callback = callback or function() end
                 
-                self.Section.Flags[flag] = state
+                Section.Flags[flag] = state
                 
                 if default then
                     task.spawn(callback)
@@ -297,7 +297,7 @@ function GUILibrary:Window()
                 Text_2.TextStrokeTransparency = 0.92
                 Text_2.TextXAlignment = Enum.TextXAlignment.Left
 
-                if self.Section.Flags[flag] then
+                if Section.Flags[flag] then
                     toggle.Text = "On"
                     toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
                     toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
@@ -308,13 +308,13 @@ function GUILibrary:Window()
                 end
 
                 Text_2.MouseButton1Click:Connect(function()
-                    if self.Section.Flags[flag] then
-                        self.Section.Flags[flag] = false
+                    if Section.Flags[flag] then
+                        Section.Flags[flag] = false
                         toggle.Text = "Off"
                         toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
                         toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
                     else
-                        self.Section.Flags[flag] = true
+                        Section.Flags[flag] = true
                         toggle.Text = "On"
                         toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
                         toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
