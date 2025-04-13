@@ -250,6 +250,85 @@ function GUILibrary:Window()
             UIPsection.PaddingRight = UDim.new(0, 10)
             UIPsection.PaddingBottom = UDim.new(0, 10)
 
+            function Section:Dropdown(name, options, callback)
+                local items = options.items or {}
+                local default = options.default or items[1]
+                local flag = options.flag or name
+                callback = callback or function() end
+            
+                Section.Flags[flag] = default
+            
+                local Dropdown = Instance.new("Frame", self.Frame)
+                local Title = Instance.new("TextLabel", Dropdown)
+                local Holder = Instance.new("TextButton", Dropdown)
+                local ListFrame = Instance.new("Frame", Dropdown)
+                local UIList = Instance.new("UIListLayout", ListFrame)
+                local UIPadding = Instance.new("UIPadding", ListFrame)
+                
+                Dropdown.Name = "Dropdown"
+                Dropdown.BackgroundTransparency = 1
+                Dropdown.Size = UDim2.new(1, 0, 0, 25 + (#items * 25))
+            
+                Title.Name = "Title"
+                Title.Text = name
+                Title.Font = Enum.Font.GothamBold
+                Title.TextSize = 12
+                Title.TextColor3 = getgenv().Theme.Text
+                Title.TextXAlignment = Enum.TextXAlignment.Left
+                Title.Size = UDim2.new(1, 0, 0, 12)
+                Title.BackgroundTransparency = 1
+                Title.Position = UDim2.new(0, 0, 0, 0)
+            
+                Holder.Name = "Holder"
+                Holder.Text = default or "Select"
+                Holder.Size = UDim2.new(1, 0, 0, 20)
+                Holder.Position = UDim2.new(0, 0, 0, 12)
+                Holder.BackgroundColor3 = getgenv().Theme.Sections
+                Holder.TextColor3 = getgenv().Theme.Text
+                Holder.BorderSizePixel = 0
+                Holder.Font = Enum.Font.Gotham
+                Holder.TextSize = 12
+                Holder.AutoButtonColor = false
+            
+                ListFrame.Name = "ListFrame"
+                ListFrame.BackgroundColor3 = getgenv().Theme.Accent
+                ListFrame.BorderSizePixel = 0
+                ListFrame.Position = UDim2.new(0, 0, 0, 32)
+                ListFrame.Size = UDim2.new(1, 0, 0, #items * 25)
+                ListFrame.Visible = false
+                ListFrame.ClipsDescendants = true
+            
+                UIList.Padding = UDim.new(0, 3)
+                UIList.SortOrder = Enum.SortOrder.LayoutOrder
+            
+                UIPadding.PaddingTop = UDim.new(0, 3)
+                UIPadding.PaddingBottom = UDim.new(0, 3)
+                UIPadding.PaddingLeft = UDim.new(0, 3)
+                UIPadding.PaddingRight = UDim.new(0, 3)
+            
+                for _, v in ipairs(items) do
+                    local Option = Instance.new("TextButton", ListFrame)
+                    Option.Text = tostring(v)
+                    Option.Size = UDim2.new(1, 0, 0, 20)
+                    Option.BackgroundTransparency = 1
+                    Option.Font = Enum.Font.Gotham
+                    Option.TextSize = 12
+                    Option.TextColor3 = getgenv().Theme.Text
+                    Option.AutoButtonColor = false
+            
+                    Option.MouseButton1Click:Connect(function()
+                        Holder.Text = v
+                        Section.Flags[flag] = v
+                        ListFrame.Visible = false
+                        callback(v)
+                    end)
+                end
+            
+                Holder.MouseButton1Click:Connect(function()
+                    ListFrame.Visible = not ListFrame.Visible
+                end)
+            end
+
             function Section:Toggle(name, options, callback)
                 local default = options.default or false
                 local flag = options.flag or name
