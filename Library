@@ -259,7 +259,9 @@ function GUILibrary:Window()
                 Section.Flags[flag] = state
                 
                 if default then
-                    task.spawn(callback)
+                    task.spawn(function()
+                        callback(state)
+                    end)
                 end
 
                 local Toggle = Instance.new("Frame", self.Frame)
@@ -320,7 +322,9 @@ function GUILibrary:Window()
                         toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
                     end
 
-                    spawn(callback)
+                    task.spawn(function()
+                        callback(Section.Flags[flag])
+                    end)
                 end)
             end
             
