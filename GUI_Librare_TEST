@@ -1,0 +1,617 @@
+--!strict
+-- Roblox GUI Library (reviewed & improved)
+-- Drop-in replacement for your original script
+-- Key changes:
+--  * Safer parenting (configure, then parent)
+--  * Small Maid utility to cleanly disconnect events on :Destroy()
+--  * Robust dragging (mouse & touch) with screen clamping
+--  * More reliable CanvasSize handling for scrolling frames
+--  * Tab highlight fix + no reliance on dynamic child-as-property lookup
+--  * Theme defaults with shallow merge from getgenv().Theme (backwards compatible)
+--  * Section:Dropdown rewritten with AutomaticSize and outside-click to close
+--  * Section:Toggle simplified; entire row is clickable; initial callback honoured
+--  * Section:Button implemented (your Button2 stub)
+--  * Public APIs: Window:SetVisible, :Destroy; Tab:Section; Section:Dropdown/Toggle/Button
+--  * Minor accessibility tweaks (font sizes, hit areas) and tiny animations
+
+local GUILibrary = {}
+
+-- ===== Maid: light connection & instance cleanup =====
+local Maid = {}
+Maid.__index = Maid
+
+function Maid.new()
+	return setmetatable({ _tasks = {} }, Maid)
+end
+
+function Maid:Give(taskAny: any)
+	local t = self._tasks
+	t[#t+1] = taskAny
+	return taskAny
+end
+
+function Maid:DoCleaning()
+	for i = #self._tasks, 1, -1 do
+		local item = self._tasks[i]
+		self._tasks[i] = nil
+		local typ = typeof(item)
+		if typ == "RBXScriptConnection" then
+			(item :: RBXScriptConnection):Disconnect()
+		elseif typ == "Instance" then
+			(item :: Instance):Destroy()
+		elseif type(item) == "function" then
+			(item :: any)()
+		end
+	end
+end
+
+-- ===== Services =====
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ContextActionService = game:GetService("ContextActionService")
+local RunService = game:GetService("RunService")
+
+-- ===== Utilities =====
+local function shallowMerge<T>(base: T, patch: {[string]: any}?): T
+	if not patch then return base end
+	for k,v in pairs(patch) do
+		(base :: any)[k] = v
+	end
+	return base
+end
+
+local function new(instType: string, props: {[string]: any}?, children: {Instance}?)
+	local inst = Instance.new(instType)
+	if props then
+		for k, v in pairs(props) do
+			(inst :: any)[k] = v
+		end
+	end
+	if children then
+		for _, ch in ipairs(children) do ch.Parent = inst end
+	end
+	return inst
+end
+
+local function makeTween(obj: Instance, info: TweenInfo, goal: {[string]: any})
+	return TweenService:Create(obj, info, goal)
+end
+
+local function clampToScreen(frame: Frame)
+	local vp = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
+	local pos = frame.Position
+	local size = frame.AbsoluteSize
+	local x = math.clamp(pos.X.Offset, 0, vp.X - size.X)
+	local y = math.clamp(pos.Y.Offset, 0, vp.Y - size.Y)
+	frame.Position = UDim2.fromOffset(x, y)
+end
+
+-- ===== Theme =====
+local DefaultTheme = {
+	BackgroundMain = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(35,35,35)),
+		ColorSequenceKeypoint.new(0.25, Color3.fromRGB(45,45,45)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50,50,50)),
+		ColorSequenceKeypoint.new(0.75, Color3.fromRGB(45,45,45)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(35,35,35)),
+	},
+	UGLLine = NumberSequence.new{
+		NumberSequenceKeypoint.new(0,0.98),
+		NumberSequenceKeypoint.new(0.25,0),
+		NumberSequenceKeypoint.new(0.5,0),
+		NumberSequenceKeypoint.new(0.75,0),
+		NumberSequenceKeypoint.new(1,0.98),
+	},
+	BackgroundLine = Color3.fromRGB(100, 10, 200),
+	SettingButton = Color3.fromRGB(30, 30, 30),
+	SettingButtonText = Color3.fromRGB(220, 220, 220),
+	Accent = Color3.fromRGB(25, 25, 25),
+	Text = Color3.fromRGB(220, 220, 220),
+	Background = Color3.fromRGB(20, 20, 20),
+	Sections = Color3.fromRGB(26, 26, 26),
+	TextSections = Color3.fromRGB(190, 190, 190),
+	UISSections = Color3.fromRGB(80, 80, 80),
+}
+
+-- backwards-compatible: honour getgenv().Theme if provided
+local function resolveTheme()
+	local patch = nil
+	pcall(function()
+		patch = (getgenv and type(getgenv) == "function" and getgenv().Theme) or nil
+	end)
+	local merged = shallowMerge(table.clone(DefaultTheme), patch)
+	return merged
+end
+
+-- ===== Create / ensure root gui =====
+local function ensureRootGui(hideBind: Enum.KeyCode?): ScreenGui
+	local existing = CoreGui:FindFirstChild("ScriptGui")
+	if existing then existing:Destroy() end
+	local gui = new("ScreenGui", {
+		Name = "ScriptGui",
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		ResetOnSpawn = false,
+	})
+	gui.Parent = CoreGui
+	_G.HideGuiBind = _G.HideGuiBind or hideBind or Enum.KeyCode.P
+	return gui
+end
+
+-- ===== Public: GUILibrary:Window() =====
+function GUILibrary:Window(config: {title: string?}?)
+	local maid = Maid.new()
+	local Theme = resolveTheme()
+	local ScriptGui = ensureRootGui(nil)
+
+	local Window = {
+		Tabs = {},
+		ActiveTab = nil :: any?,
+		Visible = true,
+		_maid = maid,
+		_root = ScriptGui,
+	}
+
+	-- Main frame
+	local Main = new("Frame", {
+		Name = "Main",
+		Size = UDim2.new(0, 650, 0, 450),
+		Position = UDim2.fromOffset(200, 150),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Color3.fromRGB(30,30,30),
+		BorderSizePixel = 0,
+	})
+	local UICMain = new("UICorner", { CornerRadius = UDim.new(0,8) })
+	local UIGMain = new("UIGradient", { Color = Theme.BackgroundMain, Rotation = 40 })
+	UICMain.Parent, UIGMain.Parent = Main, Main
+	Main.Parent = ScriptGui
+
+	local Line = new("Frame", {
+		Name = "Line",
+		Position = UDim2.new(0.025, 0, 0.10, 0),
+		Size = UDim2.new(0.95, 0, 0, 3),
+		BackgroundColor3 = Theme.BackgroundLine,
+		BorderSizePixel = 0,
+	})
+	local UIGLine = new("UIGradient", { Transparency = Theme.UGLLine, Rotation = 0 })
+	UIGLine.Parent = Line
+	Line.Parent = Main
+
+	local Title = new("TextLabel", {
+		Name = "Title",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 48),
+		Position = UDim2.new(0,0,0,0),
+		Font = Enum.Font.GothamBold,
+		Text = (config and config.title) or "Window",
+		TextSize = 18,
+		TextColor3 = Theme.Text,
+	})
+	Title.Parent = Main
+
+	local TabHolder = new("ScrollingFrame", {
+		Name = "TabsHolder",
+		Position = UDim2.new(0.025, 0, 0.175, 0),
+		Size = UDim2.new(0.15, 0, 0.8, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+	})
+	local UILLTabHolder = new("UIListLayout", {
+		Padding = UDim.new(0,6),
+		VerticalAlignment = Enum.VerticalAlignment.Top,
+		FillDirection = Enum.FillDirection.Vertical,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+	UILLTabHolder.Parent = TabHolder
+	TabHolder.Parent = Main
+
+	local SectionHolder = new("Frame", {
+		Name = "SectionsHolder",
+		Position = UDim2.new(0.2, 0, 0.175, 0),
+		Size = UDim2.new(0.775, 0, 0.8, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+	})
+	SectionHolder.Parent = Main
+
+	local SettingsButton = new("TextButton", {
+		Name = "SettingsButton",
+		Text = "⚙️",
+		Font = Enum.Font.GothamBold,
+		TextSize = 18,
+		TextColor3 = Theme.SettingButtonText,
+		BackgroundColor3 = Theme.SettingButton,
+		Size = UDim2.new(0, 32, 0, 32),
+		Position = UDim2.new(1, -42, 0, 8),
+		BorderSizePixel = 0,
+		AutoButtonColor = true,
+	})
+	new("UICorner", { CornerRadius = UDim.new(0,6), Parent = SettingsButton })
+	SettingsButton.Parent = Main
+
+	-- tiny hover animation
+	maid:Give(SettingsButton.MouseEnter:Connect(function()
+		makeTween(SettingsButton, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0,34,0,34)}):Play()
+	end))
+	maid:Give(SettingsButton.MouseLeave:Connect(function()
+		makeTween(SettingsButton, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0,32,0,32)}):Play()
+	end))
+
+	-- Update Canvas helper (no memory leak)
+	local function bindAutoCanvas(scrollFrame: ScrollingFrame)
+		local layout = scrollFrame:FindFirstChildOfClass("UIListLayout")
+		if not layout then return end
+		maid:Give(layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			scrollFrame.CanvasSize = UDim2.new(0,0,0, layout.AbsoluteContentSize.Y + 8)
+			scrollFrame.ScrollingEnabled = layout.AbsoluteContentSize.Y > scrollFrame.AbsoluteSize.Y
+		end))
+	end
+	bindAutoCanvas(TabHolder)
+
+	-- Dragging (mouse + touch) with clamp
+	local dragging = false
+	local dragStart: Vector2? = nil
+	local startPos: UDim2? = nil
+
+	local function beginDrag(input: InputObject)
+		dragging = true
+		dragStart = input.Position
+		startPos = Main.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then dragging = false end
+		end)
+	end
+
+	maid:Give(Title.InputBegan:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			beginDrag(input)
+		end
+	end))
+
+	maid:Give(UserInputService.InputChanged:Connect(function(input: InputObject)
+		if not dragging then return end
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			local delta = (input.Position - (dragStart :: Vector2))
+			Main.Position = (startPos :: UDim2) + UDim2.fromOffset(delta.X, delta.Y)
+			clampToScreen(Main)
+		end
+	end))
+
+	-- Public API
+	function Window:SetVisible(state: boolean)
+		self.Visible = state
+		ScriptGui.Enabled = state
+	end
+
+	function Window:Destroy()
+		maid:DoCleaning()
+		ScriptGui:Destroy()
+	end
+
+	-- Keybind toggle with debounce via ContextActionService
+	local lastToggle = 0
+	local function toggleAction(_, state)
+		if state ~= Enum.UserInputState.Begin then return Enum.ContextActionResult.Pass end
+		local now = os.clock()
+		if now - lastToggle < 0.25 then return Enum.ContextActionResult.Sink end
+		lastToggle = now
+		Window:SetVisible(not Window.Visible)
+		return Enum.ContextActionResult.Sink
+	end
+	ContextActionService:BindAction("GLib_Toggle", toggleAction, false, _G.HideGuiBind or Enum.KeyCode.P)
+	maid:Give(function() ContextActionService:UnbindAction("GLib_Toggle") end)
+
+	-- =========== Tabs ==========
+	local function makeTabActive(btn: TextButton, sectionFrame: Frame)
+		for _, v in ipairs(SectionHolder:GetChildren()) do
+			if v:IsA("Frame") then v.Visible = false end
+		end
+		for _, v in ipairs(TabHolder:GetChildren()) do
+			if v:IsA("TextButton") then
+				v.BackgroundColor3 = Theme.Accent
+				local flag = v:FindFirstChild("FlagFrame")
+				if flag then (flag :: Instance):Destroy() end
+			end
+		end
+		sectionFrame.Visible = true
+		btn.BackgroundColor3 = Theme.Background
+		local flag = new("Frame", {
+			Name = "FlagFrame",
+			Position = UDim2.new(0,3,0,-1),
+			Size = UDim2.new(0.02,0,1,0),
+			BorderSizePixel = 0,
+			BackgroundColor3 = Theme.BackgroundLine,
+		})
+		new("UIGradient", { Transparency = Theme.UGLLine, Rotation = 90, Parent = flag })
+		flag.Parent = btn
+	end
+
+	function Window:Tab(cfg: {Name: string})
+		local Tab = { Sections = {} }
+		self.Tabs[cfg.Name] = Tab
+
+		local TabButton = new("TextButton", {
+			Size = UDim2.new(1, 0, 0, 46),
+			BorderSizePixel = 0,
+			BackgroundColor3 = Theme.Accent,
+			Text = cfg.Name,
+			TextColor3 = Theme.Text,
+			Font = Enum.Font.Gotham,
+			TextSize = 16,
+			AutoButtonColor = true,
+		})
+		new("UICorner", { CornerRadius = UDim.new(0,8), Parent = TabButton })
+		TabButton.Parent = TabHolder
+
+		local SectionFrame = new("Frame", {
+			Name = cfg.Name .. "_Section",
+			Size = UDim2.new(1,0,1,0),
+			BackgroundTransparency = 1,
+			Visible = false,
+		})
+		SectionFrame.Parent = SectionHolder
+
+		maid:Give(TabButton.MouseButton1Click:Connect(function()
+			makeTabActive(TabButton, SectionFrame)
+			Window.ActiveTab = Tab
+		end))
+
+		-- First created tab becomes active
+		if not Window.ActiveTab then
+			makeTabActive(TabButton, SectionFrame)
+			Window.ActiveTab = Tab
+		end
+
+		-- ===== Sections =====
+		function Tab:Section(scfg: {Name: string, Size: UDim2?, Position: UDim2?})
+			local Section = { Flags = {} }
+			self.Sections[scfg.Name] = Section
+
+			local wrapper = new("Frame", {
+				Name = scfg.Name or "Section",
+				BackgroundTransparency = 1,
+				Size = scfg.Size or UDim2.new(0.48, 0, 1, 0),
+				Position = scfg.Position or UDim2.new(0, 0, 0, 0),
+			})
+			wrapper.Parent = SectionFrame
+
+			local label = new("TextLabel", {
+				Text = scfg.Name or "Section",
+				TextColor3 = Theme.TextSections,
+				BackgroundTransparency = 0,
+				BorderSizePixel = 0,
+				BackgroundColor3 = Theme.Sections,
+				Font = Enum.Font.Gotham,
+				TextSize = 17,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Size = UDim2.new(1, 0, 0, 18),
+				Position = UDim2.new(0,0,0.003,0),
+				ZIndex = 2,
+			})
+			label.Parent = wrapper
+
+			local section = new("ScrollingFrame", {
+				Size = UDim2.new(1, 0, 1, -10),
+				Position = UDim2.new(0, 0, 0, 10),
+				BackgroundColor3 = Theme.Sections,
+				BorderSizePixel = 0,
+				AutomaticCanvasSize = Enum.AutomaticSize.Y,
+				CanvasSize = UDim2.new(),
+				ScrollBarThickness = 4,
+			})
+			new("UIStroke", { Color = Theme.UISSections, Thickness = 1, Parent = section })
+			local UILLsection = new("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder })
+			local UIPsection = new("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0,10), PaddingRight = UDim.new(0,10), PaddingBottom = UDim.new(0,10) })
+			UILLsection.Parent, UIPsection.Parent = section, section
+			section.Parent = wrapper
+
+			bindAutoCanvas(section)
+
+			Section.Frame = section
+
+			-- Widgets ------
+			function Section:Dropdown(name: string, options: {items: {any}?, default: any?, flag: string?}?, callback: (any) -> ()?)
+				local items = (options and options.items) or {}
+				local defaultVal = (options and options.default) or items[1]
+				local flag = (options and options.flag) or name
+				callback = callback or function() end
+
+				self.Flags[flag] = defaultVal
+
+				local container = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1,0,0, 12 + 28) })
+				container.Parent = section
+
+				local Title = new("TextLabel", {
+					Text = name,
+					Font = Enum.Font.GothamBold,
+					TextSize = 12,
+					TextColor3 = Theme.Text,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1,0,0,12),
+				})
+				Title.Parent = container
+
+				local Holder = new("TextButton", {
+					Text = defaultVal and tostring(defaultVal) or "Select",
+					Size = UDim2.new(1, 0, 0, 24),
+					Position = UDim2.new(0,0,0,14),
+					BackgroundColor3 = Theme.Background,
+					TextColor3 = Theme.Text,
+					BorderSizePixel = 0,
+					Font = Enum.Font.Gotham,
+					TextSize = 12,
+					AutoButtonColor = true,
+				})
+				Holder.Parent = container
+
+				local ListFrame = new("Frame", {
+					BackgroundColor3 = Theme.Accent,
+					BorderSizePixel = 0,
+					Position = UDim2.new(0,0,0, 14 + 26),
+					AutomaticSize = Enum.AutomaticSize.Y,
+					Size = UDim2.new(1,0,0,0),
+					Visible = false,
+					ClipsDescendants = true,
+				})
+				local UIL = new("UIListLayout", { Padding = UDim.new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder })
+				local UIP = new("UIPadding", { PaddingTop = UDim.new(0,4), PaddingBottom = UDim.new(0,4), PaddingLeft = UDim.new(0,4), PaddingRight = UDim.new(0,4) })
+				UIL.Parent, UIP.Parent = ListFrame, ListFrame
+				ListFrame.Parent = container
+
+				local function closeList() ListFrame.Visible = false end
+				local function openList() ListFrame.Visible = true end
+
+				-- populate
+				for _, v in ipairs(items) do
+					local Option = new("TextButton", {
+						Text = tostring(v),
+						Size = UDim2.new(1,0,0,22),
+						BackgroundTransparency = 1,
+						Font = Enum.Font.Gotham,
+						TextSize = 12,
+						TextColor3 = Theme.Text,
+						AutoButtonColor = true,
+					})
+					Option.Parent = ListFrame
+					maid:Give(Option.MouseButton1Click:Connect(function()
+						Holder.Text = tostring(v)
+						self.Flags[flag] = v
+						closeList()
+						callback(v)
+					end))
+				end
+
+				maid:Give(Holder.MouseButton1Click:Connect(function()
+					ListFrame.Visible = not ListFrame.Visible
+				end))
+
+				-- click outside to close
+				maid:Give(UserInputService.InputBegan:Connect(function(input, gpe)
+					if gpe then return end
+					if input.UserInputType == Enum.UserInputType.MouseButton1 and ListFrame.Visible then
+						local m = UserInputService:GetMouseLocation()
+						local absPos = ListFrame.AbsolutePosition
+						local absSize = ListFrame.AbsoluteSize
+						if not (m.X >= absPos.X and m.X <= absPos.X + absSize.X and m.Y >= absPos.Y and m.Y <= absPos.Y + absSize.Y) then
+							closeList()
+						end
+					end
+				end))
+			end
+
+			function Section:Toggle(name: string, options: {default: boolean?, flag: string?}?, callback: (boolean) -> ()?)
+				local state = (options and options.default) or false
+				local flag = (options and options.flag) or name
+				callback = callback or function() end
+				self.Flags[flag] = state
+
+				local row = new("TextButton", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1,0,0,26),
+					AutoButtonColor = true,
+					Text = "",
+				})
+				row.Parent = section
+
+				local label = new("TextLabel", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1,-40,1,0),
+					Position = UDim2.new(0,0,0,0),
+					Font = Enum.Font.GothamBold,
+					Text = name,
+					TextSize = 12,
+					TextColor3 = Theme.Text,
+					TextXAlignment = Enum.TextXAlignment.Left,
+				})
+				label.Parent = row
+
+				local indicator = new("TextLabel", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(0,40,1,0),
+					Position = UDim2.new(1,-40,0,0),
+					Font = Enum.Font.GothamBold,
+					TextSize = 12,
+					TextXAlignment = Enum.TextXAlignment.Right,
+				})
+				indicator.Parent = row
+
+				local function render()
+					indicator.Text = state and "On" or "Off"
+					indicator.TextColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+					indicator.TextStrokeColor3 = indicator.TextColor3
+					indicator.TextStrokeTransparency = 0.92
+				end
+				render()
+
+				maid:Give(row.MouseButton1Click:Connect(function()
+					state = not state
+					self.Flags[flag] = state
+					render()
+					task.spawn(function() callback(state) end)
+				end))
+
+				-- run initial callback if requested
+				task.defer(function()
+					callback(state)
+				end)
+			end
+
+			function Section:Button(name: string, options: {flag: string?}?, callback: (() -> ())?)
+				local flag = (options and options.flag) or name
+				callback = callback or function() end
+
+				local btn = new("TextButton", {
+					Text = name,
+					Size = UDim2.new(1, 0, 0, 26),
+					BackgroundColor3 = Theme.Background,
+					TextColor3 = Theme.Text,
+					BorderSizePixel = 0,
+					Font = Enum.Font.Gotham,
+					TextSize = 12,
+					AutoButtonColor = true,
+				})
+				new("UICorner", { CornerRadius = UDim.new(0,6), Parent = btn })
+				btn.Parent = section
+
+				maid:Give(btn.MouseButton1Click:Connect(function()
+					self.Flags[flag] = true
+					task.spawn(callback)
+					-- small press animation
+					makeTween(btn, TweenInfo.new(0.05, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, -2, 0, 24)}):Play()
+					task.delay(0.06, function()
+						makeTween(btn, TweenInfo.new(0.06, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 26)}):Play()
+					end)
+				end))
+			end
+
+			return Section
+		end
+
+		return Tab
+	end
+
+	return Window
+end
+
+-- ===== Example Usage (comment out if you treat this strictly as a module) =====
+--[[
+local window = GUILibrary:Window({ title = "Demo" })
+local tab = window:Tab({ Name = "Main" })
+local left = tab:Section({ Name = "Left" })
+left:Toggle("God Mode", {default=false}, function(on)
+	print("God Mode:", on)
+end)
+left:Dropdown("Difficulty", { items = {"Easy","Medium","Hard"}, default = "Medium" }, function(v)
+	print("Difficulty:", v)
+end)
+left:Button("Do Action", nil, function()
+	print("Action!")
+end)
+]]
+
+return GUILibrary
