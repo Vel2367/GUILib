@@ -1,0 +1,385 @@
+-- GuiLib.lua
+-- Простая GUI-библиотека для Roblox (Luau)
+local GuiLib = {}
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- ========= УТИЛЫ =========
+local function tween(o, t, props)
+	return TweenService:Create(o, TweenInfo.new(t, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+end
+
+local function mk(className, props, parent)
+	local o = Instance.new(className)
+	for k, v in pairs(props or {}) do o[k] = v end
+	if parent then o.Parent = parent end
+	return o
+end
+
+-- ========= ОСНОВНОЕ =========
+function GuiLib:CreateScreen(name, parent)
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = name or "GuiScreen"
+	screenGui.ResetOnSpawn = false
+	screenGui.IgnoreGuiInset = true
+	screenGui.Parent = parent or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	return screenGui
+end
+
+function GuiLib:CreateFrame(props)
+	local frame = mk("Frame", {
+		Name = props.Name or "Frame",
+		Size = props.Size or UDim2.new(0, 320, 0, 220),
+		Position = props.Position or UDim2.new(0.5, -160, 0.5, -110),
+		BackgroundColor3 = props.Color or Color3.fromRGB(30, 30, 30),
+		BorderSizePixel = 0,
+		Parent = props.Parent,
+	})
+	mk("UICorner", { CornerRadius = UDim.new(0, 12) }, frame)
+	mk("UIStroke", { Thickness = 1; Color = Color3.fromRGB(70, 70, 70) }, frame)
+	return frame
+end
+
+function GuiLib:CreateLabel(props)
+	local label = mk("TextLabel", {
+		Name = props.Name or "Label",
+		Text = props.Text or "Label",
+		Size = props.Size or UDim2.new(1, -20, 0, 26),
+		Position = props.Position or UDim2.new(0, 10, 0, 10),
+		BackgroundTransparency = 1,
+		TextColor3 = props.Color or Color3.fromRGB(255,255,255),
+		Font = Enum.Font.SourceSansSemibold,
+		TextSize = props.TextSize or 18,
+		TextXAlignment = props.TextXAlignment or Enum.TextXAlignment.Left,
+		Parent = props.Parent,
+	})
+	return label
+end
+
+function GuiLib:CreateButton(props)
+	local btn = mk("TextButton", {
+		Name = props.Name or "Button",
+		Text = props.Text or "Click",
+		Size = props.Size or UDim2.new(0, 120, 0, 36),
+		Position = props.Position or UDim2.new(0.5, -60, 1, -46),
+		BackgroundColor3 = props.Color or Color3.fromRGB(60,120,200),
+		TextColor3 = Color3.fromRGB(255,255,255),
+		Font = Enum.Font.SourceSansSemibold,
+		TextSize = props.TextSize or 18,
+		AutoButtonColor = true,
+		Parent = props.Parent,
+	})
+	mk("UICorner", { CornerRadius = UDim.new(0, 10) }, btn)
+
+	if props.Callback then
+		btn.MouseButton1Click:Connect(function()
+			props.Callback()
+		end)
+	end
+	return btn
+end
+
+-- ========= DRAG =========
+function GuiLib:MakeDraggable(frame, dragHandle)
+	-- dragHandle: опционально — элемент, за который тянем (по умолчанию весь frame)
+	local handle = dragHandle or frame
+	local dragging, dragStart, startPos
+
+	handle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			dragStart = input.Position
+			startPos = frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
+			end)
+		end
+	end)
+
+	handle.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+			local delta = input.Position - dragStart
+			frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+end
+
+-- ========= ТОПБАР (свернуть/закрыть) =========
+function GuiLib:CreateTopbar(props)
+	local parent = props.Parent
+	local height = props.Height or 34
+
+	local bar = mk("Frame", {
+		Name = "Topbar",
+		BackgroundColor3 = Color3.fromRGB(40,40,40),
+		Size = UDim2.new(1, 0, 0, height),
+		Parent = parent
+	})
+	mk("UICorner", { CornerRadius = UDim.new(0, 12)}, bar)
+	local cornerPad = mk("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -24, 1, 0), Position = UDim2.new(0, 12, 0, 0), Parent = bar }) -- визуально скруглить
+
+	local title = mk("TextLabel", {
+		Name = "Title",
+		Text = props.Title or parent.Name or "Window",
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(235,235,235),
+		Font = Enum.Font.SourceSansSemibold,
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.new(1, -120, 1, 0),
+		Position = UDim2.new(0, 10, 0, 0),
+		Parent = bar
+	})
+
+	local btnWrap = mk("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(0, 100, 1, 0),
+		Position = UDim2.new(1, -100, 0, 0),
+		Parent = bar
+	})
+
+	local function iconBtn(name, text, xOffset)
+		local b = mk("TextButton", {
+			Name = name,
+			Text = text,
+			Size = UDim2.new(0, 28, 0, 24),
+			Position = UDim2.new(0, xOffset, 0.5, -12),
+			BackgroundColor3 = Color3.fromRGB(60,60,60),
+			TextColor3 = Color3.fromRGB(230,230,230),
+			Font = Enum.Font.GothamBold,
+			TextSize = 16,
+			Parent = btnWrap,
+			AutoButtonColor = true,
+		})
+		mk("UICorner", { CornerRadius = UDim.new(0, 6) }, b)
+		return b
+	 end
+
+	local minimize = iconBtn("Minimize", "–", 10)
+	local close    = iconBtn("Close", "×", 44)
+
+	-- Контейнер содержимого окна
+	local content = mk("Frame", {
+		Name = "Content",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, -20, 1, -height-12),
+		Position = UDim2.new(0, 10, 0, height + 6),
+		Parent = parent
+	})
+
+	local collapsed = false
+	minimize.MouseButton1Click:Connect(function()
+		collapsed = not collapsed
+		if collapsed then
+			tween(parent, 0.2, { Size = UDim2.new(parent.Size.X.Scale, parent.Size.X.Offset, 0, 42) })
+			content.Visible = false
+		else
+			tween(parent, 0.2, { Size = UDim2.new(parent.Size.X.Scale, parent.Size.X.Offset, 0, props.ExpandedHeight or 220) })
+			content.Visible = true
+		end
+	end)
+
+	close.MouseButton1Click:Connect(function()
+		parent.Visible = false
+	end)
+
+	return bar, content
+end
+
+-- ========= ГЛОБАЛЬНЫЙ ХОТКЕЙ ДЛЯ ПОКАЗА/СКРЫТИЯ ЭКРАНА =========
+function GuiLib:EnableGlobalToggle(screenGui, keyCode)
+	keyCode = keyCode or Enum.KeyCode.RightShift
+	UserInputService.InputBegan:Connect(function(input, gpe)
+		if gpe then return end
+		if input.KeyCode == keyCode then
+			screenGui.Enabled = not screenGui.Enabled
+		end
+	end)
+end
+
+-- ========= TOGGLE =========
+function GuiLib:CreateToggle(props)
+	local root = mk("Frame", {
+		Name = props.Name or "Toggle",
+		Size = props.Size or UDim2.new(1, -20, 0, 32),
+		Position = props.Position or UDim2.new(0, 10, 0, 0),
+		BackgroundTransparency = 1,
+		Parent = props.Parent
+	})
+
+	local label = mk("TextLabel", {
+		Text = props.Text or "Toggle",
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(230,230,230),
+		Font = Enum.Font.SourceSans,
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.new(1, -60, 1, 0),
+		Parent = root
+	})
+
+	local btn = mk("TextButton", {
+		Text = "",
+		Size = UDim2.new(0, 46, 0, 24),
+		Position = UDim2.new(1, -46, 0.5, -12),
+		BackgroundColor3 = Color3.fromRGB(80,80,80),
+		Parent = root,
+		AutoButtonColor = false
+	})
+	mk("UICorner", { CornerRadius = UDim.new(1, 0) }, btn)
+
+	local knob = mk("Frame", {
+		Size = UDim2.new(0, 20, 0, 20),
+		Position = UDim2.new(0, 2, 0.5, -10),
+		BackgroundColor3 = Color3.fromRGB(200,200,200),
+		Parent = btn
+	})
+	mk("UICorner", { CornerRadius = UDim.new(1, 0) }, knob)
+
+	local state = props.State == true
+	local onChanged = Instance.new("BindableEvent")
+
+	local function setVisual(on)
+		if on then
+			tween(btn, 0.12, { BackgroundColor3 = Color3.fromRGB(60,160,90) })
+			tween(knob, 0.12, { Position = UDim2.new(1, -22, 0.5, -10) })
+		else
+			tween(btn, 0.12, { BackgroundColor3 = Color3.fromRGB(80,80,80) })
+			tween(knob, 0.12, { Position = UDim2.new(0, 2, 0.5, -10) })
+		end
+	end
+	setVisual(state)
+
+	local function set(v)
+		if state == v then return end
+		state = v
+		setVisual(state)
+		onChanged:Fire(state)
+		if props.Callback then props.Callback(state) end
+	end
+
+	btn.MouseButton1Click:Connect(function() set(not state) end)
+
+	return {
+		Root = root,
+		Set = set,
+		Get = function() return state end,
+		Changed = onChanged.Event,
+		Label = label,
+		Button = btn,
+	}
+end
+
+-- ========= DROPDOWN =========
+function GuiLib:CreateDropdown(props)
+	local items = props.Items or { "Option 1", "Option 2" }
+	local selectedIndex = props.DefaultIndex or 1
+
+	local root = mk("Frame", {
+		Name = props.Name or "Dropdown",
+		Size = props.Size or UDim2.new(1, -20, 0, 34),
+		Position = props.Position or UDim2.new(0, 10, 0, 0),
+		BackgroundTransparency = 1,
+		Parent = props.Parent
+	})
+
+	local button = mk("TextButton", {
+		Text = items[selectedIndex] or "Select...",
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = Color3.fromRGB(50,50,50),
+		TextColor3 = Color3.fromRGB(235,235,235),
+		Font = Enum.Font.SourceSans,
+		TextSize = 18,
+		Parent = root,
+		AutoButtonColor = true
+	})
+	mk("UICorner", { CornerRadius = UDim.new(0, 8) }, button)
+
+	local list = mk("Frame", {
+		Name = "List",
+		BackgroundColor3 = Color3.fromRGB(45,45,45),
+		Size = UDim2.new(1, 0, 0, 0),
+		Position = UDim2.new(0, 0, 1, 4),
+		Visible = false,
+		Parent = root
+	})
+	mk("UICorner", { CornerRadius = UDim.new(0, 8) }, list)
+	mk("UIStroke", { Thickness = 1; Color = Color3.fromRGB(70,70,70) }, list)
+	local layout = mk("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) }, list)
+	mk("UIPadding", { PaddingTop = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6)}, list)
+
+	local optionButtons = {}
+
+	local function rebuild()
+		for _, b in ipairs(optionButtons) do b:Destroy() end
+		optionButtons = {}
+		for i, text in ipairs(items) do
+			local b = mk("TextButton", {
+				Text = text,
+				Size = UDim2.new(1, -12, 0, 28),
+				BackgroundColor3 = Color3.fromRGB(60,60,60),
+				TextColor3 = Color3.fromRGB(230,230,230),
+				Font = Enum.Font.SourceSans,
+				TextSize = 17,
+				Parent = list,
+				AutoButtonColor = true
+			})
+			mk("UICorner", { CornerRadius = UDim.new(0, 6) }, b)
+			table.insert(optionButtons, b)
+			b.MouseButton1Click:Connect(function()
+				selectedIndex = i
+				button.Text = text
+				list.Visible = false
+				list.Size = UDim2.new(1, 0, 0, 0)
+				if props.Callback then props.Callback(i, text) end
+			end)
+		end
+	end
+
+	local function open()
+		list.Visible = true
+		local totalHeight = (#items * 32) + 16
+		tween(list, 0.12, { Size = UDim2.new(1, 0, 0, totalHeight) })
+	end
+	local function close()
+		tween(list, 0.12, { Size = UDim2.new(1, 0, 0, 0) })
+		task.delay(0.12, function()
+			if list.Size.Y.Offset == 0 then list.Visible = false end
+		end)
+	end
+
+	button.MouseButton1Click:Connect(function()
+		if list.Visible then close() else open() end
+	end)
+
+	rebuild()
+
+	return {
+		Root = root,
+		Button = button,
+		List = list,
+		GetIndex = function() return selectedIndex end,
+		GetText = function() return items[selectedIndex] end,
+		SetItems = function(newItems)
+			items = newItems
+			selectedIndex = 1
+			button.Text = items[1] or "Select..."
+			rebuild()
+		end,
+		Close = close,
+		Open = open,
+	}
+end
+
+-- ========= МАЛЕНЬКИЕ ПРИКОЛЮХИ =========
+function GuiLib:FadeIn(frame, t)
+	frame.Visible = true
+	frame.BackgroundTransparency = 1
+	tween(frame, t or 0.15, { BackgroundTransparency = 0 })
+end
+function GuiLib:FadeOut(frame, t)
+	tween(frame, t or 0.15, { BackgroundTransparency = 1 })
+	task.delay(t or 0.15, function() frame.Visible = false end)
+end
+
+return GuiLib
