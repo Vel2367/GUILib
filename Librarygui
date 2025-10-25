@@ -1,143 +1,182 @@
-local GUILibrary = {}
+-- GUILibrary (compact, refined palette)
 
-if game:GetService("CoreGui"):FindFirstChild("ScriptGui") then
-    game.CoreGui.ScriptGui:Destroy()
-end
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+local GUILibrary = {}
 
 if not _G.HideGuiBind then _G.HideGuiBind = Enum.KeyCode.P end
 
-local ScriptGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-ScriptGui.Name = "ScriptGui"
+do
+    local old = CoreGui:FindFirstChild("ScriptGui")
+    if old then old:Destroy() end
+end
 
 getgenv().Theme = {
     BackgroundMain = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 35)),
-        ColorSequenceKeypoint.new(0.25, Color3.fromRGB(45, 45, 45)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 50, 50)),
-        ColorSequenceKeypoint.new(0.75, Color3.fromRGB(45, 45, 45)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 35))
+        ColorSequenceKeypoint.new(0,  Color3.fromRGB(20, 22, 26)),
+        ColorSequenceKeypoint.new(0.5,Color3.fromRGB(24, 27, 32)),
+        ColorSequenceKeypoint.new(1,  Color3.fromRGB(20, 22, 26))
     },
     UGLLine = NumberSequence.new{
-        NumberSequenceKeypoint.new(0,0.98),
-        NumberSequenceKeypoint.new(0.25,0),
-        NumberSequenceKeypoint.new(0.5,0),
-        NumberSequenceKeypoint.new(0.75,0),
-        NumberSequenceKeypoint.new(1,0.98)
+        NumberSequenceKeypoint.new(0,0.85),
+        NumberSequenceKeypoint.new(0.5,0.05),
+        NumberSequenceKeypoint.new(1,0.85)
     },
-    BackgroundLine = Color3.fromRGB(100, 10, 200),
-    SettingButton = Color3.fromRGB(30, 30, 30),
-    SettingButtonText = Color3.fromRGB(220, 220, 220),
-    Accent = Color3.fromRGB(25, 25, 25),
-    Text = Color3.fromRGB(220, 220, 220),
-    Background = Color3.fromRGB(20, 20, 20),
-    Sections = Color3.fromRGB(26, 26, 26),
-    TextSections = Color3.fromRGB(190, 190, 190),
-    UISSections = Color3.fromRGB(80, 80, 80)
+    BackgroundLine = Color3.fromRGB(88, 220, 195),
+    SettingButton     = Color3.fromRGB(28, 31, 36),
+    SettingButtonText = Color3.fromRGB(220, 230, 235),
+    Accent            = Color3.fromRGB(28, 31, 36),
+    Text              = Color3.fromRGB(225, 230, 235),
+    Background        = Color3.fromRGB(18, 20, 24),
+    Sections          = Color3.fromRGB(30, 34, 39),
+    TextSections      = Color3.fromRGB(200, 210, 220),
+    UISSections       = Color3.fromRGB(60, 70, 80)
 }
 
+local function HookCanvas(scrollFrame: ScrollingFrame)
+    local layout = scrollFrame:FindFirstChildOfClass("UIListLayout")
+    if not layout then return end
+    local function refresh()
+        local y = layout.AbsoluteContentSize.Y + 10
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, y)
+        scrollFrame.ScrollingEnabled = y > scrollFrame.AbsoluteSize.Y
+    end
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(refresh)
+    refresh()
+end
 
+local function MakeDrag(frame: Frame, handle: Instance)
+    local dragging = false
+    local dragStart, startPos
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    handle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            local newPos = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+            local vp = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080)
+            local size = frame.AbsoluteSize
+            local x = math.clamp(newPos.X.Offset, 10 - vp.X, vp.X - 10 - size.X)
+            local y = math.clamp(newPos.Y.Offset, 10 - vp.Y, vp.Y - 10 - size.Y)
+            frame.Position = UDim2.new(newPos.X.Scale, x, newPos.Y.Scale, y)
+        end
+    end)
+end
 
 function GUILibrary:Window()
-    local Window = {
-        Tabs = {},
-        ActiveTab = nil,
-        Visible = true
-    }
+    local Window = { Tabs = {}, ActiveTab = nil, Visible = true, _connections = {} }
 
-    local Main = Instance.new("Frame", ScriptGui)
-    local UICMain = Instance.new("UICorner", Main)
-    local UIGMain = Instance.new("UIGradient", Main)
-    local Line = Instance.new("Frame", Main)
-    local UIGLine = Instance.new("UIGradient", Line)
-    local Title = Instance.new("Frame", Main)
-    local TabHolder = Instance.new("ScrollingFrame", Main)
-    local UILLTabHolder = Instance.new("UIListLayout", TabHolder)
-    local SectionHolder = Instance.new("Frame", Main)
-    local SettingsButton = Instance.new("TextButton", Main)
-    local UICSet = Instance.new("UICorner", SettingsButton)
+    local ScriptGui = Instance.new("ScreenGui")
+    ScriptGui.Name = "ScriptGui"
+    ScriptGui.ResetOnSpawn = false
+    ScriptGui.IgnoreGuiInset = true
+    ScriptGui.Enabled = true
+    ScriptGui.Parent = CoreGui
 
-
+    local Main = Instance.new("Frame")
     Main.Name = "Main"
-    Main.Size = UDim2.new(0, 650, 0, 450)
-    Main.Position = UDim2.new(0.5, -325, 0.5, -225)
-    UICMain.CornerRadius = UDim.new(0, 8)
-    UIGMain.Color = getgenv().Theme.BackgroundMain
-    UIGMain.Rotation = 40
+    Main.Size = UDim2.new(0, 640, 0, 420)
+    Main.Position = UDim2.new(0.5, -320, 0.5, -210)
+    Main.BackgroundColor3 = Color3.fromRGB(24, 27, 32)
+    Main.BorderSizePixel = 0
+    Main.Parent = ScriptGui
 
+    local UICMain = Instance.new("UICorner")
+    UICMain.CornerRadius = UDim.new(0, 10)
+    UICMain.Parent = Main
+
+    local UIGMain = Instance.new("UIGradient")
+    UIGMain.Color = getgenv().Theme.BackgroundMain
+    UIGMain.Rotation = 35
+    UIGMain.Parent = Main
+
+    local Title = Instance.new("Frame")
+    Title.Name = "Title"
+    Title.Size = UDim2.new(1, 0, 0, 44)
+    Title.BackgroundTransparency = 1
+    Title.Parent = Main
+
+    local TitleText = Instance.new("TextLabel")
+    TitleText.Text = "Script UI"
+    TitleText.Size = UDim2.new(0.75, 0, 1, 0)
+    TitleText.Position = UDim2.new(0.03, 0, 0, 0)
+    TitleText.Font = Enum.Font.GothamBold
+    TitleText.TextSize = 15
+    TitleText.TextXAlignment = Enum.TextXAlignment.Left
+    TitleText.TextColor3 = getgenv().Theme.Text
+    TitleText.BackgroundTransparency = 1
+    TitleText.Parent = Title
+
+    local Line = Instance.new("Frame")
     Line.Name = "Line"
-    Line.Position = UDim2.new(0.025, 0, 0.10, 0)
-    Line.Size = UDim2.new(0.95, 0, 0, 3)
+    Line.Position = UDim2.new(0.03, 0, 0, 44)
+    Line.Size = UDim2.new(0.94, 0, 0, 2)
     Line.BorderSizePixel = 0
     Line.BackgroundColor3 = getgenv().Theme.BackgroundLine
+    Line.Parent = Main
+
+    local UIGLine = Instance.new("UIGradient")
     UIGLine.Transparency = getgenv().Theme.UGLLine
+    UIGLine.Rotation = 90
+    UIGLine.Parent = Line
 
-    Title.Name = "Title"
-    Title.Position = UDim2.new(0, 0, 0, 0)
-    Title.Size = UDim2.new(1, 0, 0.15, 0)
-    Title.BackgroundTransparency = 1
-    Title.BorderSizePixel = 0
-
-    TabHolder.Name = "TabsHolder"
-    TabHolder.Position = UDim2.new(0.025, 0, 0.175, 0)
-    TabHolder.Size = UDim2.new(0.15, 0, 0.8, 0)
-    TabHolder.BackgroundTransparency = 1
-    TabHolder.BorderSizePixel = 0
-    TabHolder.ScrollBarThickness = 0
-    UILLTabHolder.Padding = UDim.new(0,5)
-    UILLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
-    UILLTabHolder.FillDirection = Enum.FillDirection.Vertical
-
-    SectionHolder.Name = "SectionsHolder"
-    SectionHolder.Position = UDim2.new(0.2, 0, 0.175, 0)
-    SectionHolder.Size = UDim2.new(0.775, 0, 0.8, 0)
-    SectionHolder.BackgroundTransparency = 1
-    SectionHolder.BorderSizePixel = 0
-
+    local SettingsButton = Instance.new("TextButton")
     SettingsButton.Name = "SettingsButton"
     SettingsButton.Text = "⚙️"
     SettingsButton.Font = Enum.Font.GothamBold
     SettingsButton.TextSize = 18
     SettingsButton.TextColor3 = getgenv().Theme.SettingButtonText
     SettingsButton.BackgroundColor3 = getgenv().Theme.SettingButton
-    SettingsButton.Size = UDim2.new(0, 32, 0, 32)
-    SettingsButton.Position = UDim2.new(0.8, 0, 0.05, -15)
+    SettingsButton.Size = UDim2.new(0, 30, 0, 30)
+    SettingsButton.Position = UDim2.new(1, -40, 0, 7)
     SettingsButton.BorderSizePixel = 0
-    SettingsButton.AutoButtonColor = false
+    SettingsButton.AutoButtonColor = true
+    SettingsButton.Parent = Main
+    local UICSet = Instance.new("UICorner")
     UICSet.CornerRadius = UDim.new(0, 6)
+    UICSet.Parent = SettingsButton
 
-    local function UpdateCanvas(scrollFrame)
-        scrollFrame:FindFirstChildOfClass("UIListLayout"):GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, scrollFrame:FindFirstChildOfClass("UIListLayout").AbsoluteContentSize.Y + 10)
-            scrollFrame.ScrollingEnabled = scrollFrame:FindFirstChildOfClass("UIListLayout").AbsoluteContentSize.Y > scrollFrame.AbsoluteSize.Y
-        end)
-    end
-    UpdateCanvas(TabHolder)
+    local TabHolder = Instance.new("ScrollingFrame")
+    TabHolder.Name = "TabsHolder"
+    TabHolder.Position = UDim2.new(0.03, 0, 0, 58)
+    TabHolder.Size = UDim2.new(0.18, 0, 1, -68)
+    TabHolder.BackgroundTransparency = 1
+    TabHolder.BorderSizePixel = 0
+    TabHolder.ScrollBarThickness = 2
+    TabHolder.ClipsDescendants = true
+    TabHolder.Parent = Main
+    local UILLTabHolder = Instance.new("UIListLayout")
+    UILLTabHolder.Padding = UDim.new(0,6)
+    UILLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
+    UILLTabHolder.FillDirection = Enum.FillDirection.Vertical
+    UILLTabHolder.SortOrder = Enum.SortOrder.LayoutOrder
+    UILLTabHolder.Parent = TabHolder
+    HookCanvas(TabHolder)
 
-    local function MakeDrag(frame, handle)
-        local dragging = false
-        local dragStart, startPos
+    local SectionHolder = Instance.new("Frame")
+    SectionHolder.Name = "SectionsHolder"
+    SectionHolder.Position = UDim2.new(0.22, 0, 0, 58)
+    SectionHolder.Size = UDim2.new(0.75, 0, 1, -68)
+    SectionHolder.BackgroundTransparency = 1
+    SectionHolder.BorderSizePixel = 0
+    SectionHolder.ClipsDescendants = true
+    SectionHolder.Parent = Main
 
-        handle.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = frame.Position
-            end
-        end)
-
-        handle.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                frame.Position = startPos + UDim2.fromOffset(delta.X, delta.Y)
-            end
-        end)
-    end
     MakeDrag(Main, Title)
 
     function Window:SetVisible(state: boolean)
@@ -145,306 +184,358 @@ function GUILibrary:Window()
         ScriptGui.Enabled = state
     end
 
+    function Window:Destroy()
+        for _, c in ipairs(self._connections) do
+            if typeof(c) == "RBXScriptConnection" then pcall(function() c:Disconnect() end) end
+        end
+        ScriptGui:Destroy()
+    end
+
+    local function TabActiveFlag(tabButton: TextButton)
+        local FlagFrame = Instance.new("Frame")
+        FlagFrame.Name = "FlagFrame"
+        FlagFrame.Position = UDim2.new(0,3,0,0)
+        FlagFrame.Size = UDim2.new(0,3,1,0)
+        FlagFrame.BorderSizePixel = 0
+        FlagFrame.BackgroundColor3 = getgenv().Theme.BackgroundLine
+        FlagFrame.Parent = tabButton
+        local g = Instance.new("UIGradient")
+        g.Transparency = getgenv().Theme.UGLLine
+        g.Rotation = 90
+        g.Parent = FlagFrame
+    end
 
     function Window:Tab(config)
         local Tab = {}
         Tab.Sections = {}
         Window.Tabs[config.Name] = Tab
 
-        local TabButton = Instance.new("TextButton", TabHolder)
-        local UICTabButton = Instance.new("UICorner", TabButton)
-        local SectionFrame = Instance.new("Frame", SectionHolder)
-
-        TabButton.Size = UDim2.new(1, 0, 0, 50)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(1, 0, 0, 38)
         TabButton.BorderSizePixel = 0
         TabButton.BackgroundColor3 = getgenv().Theme.Accent
         TabButton.Text = config.Name
         TabButton.TextColor3 = getgenv().Theme.Text
         TabButton.Font = Enum.Font.Gotham
-        TabButton.TextSize = 16
-        TabButton.AutoButtonColor = false
+        TabButton.TextSize = 14
+        TabButton.AutoButtonColor = true
+        TabButton.Parent = TabHolder
+        local UICTabButton = Instance.new("UICorner")
         UICTabButton.CornerRadius = UDim.new(0, 8)
+        UICTabButton.Parent = TabButton
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 1
+        stroke.Color = Color3.fromRGB(45, 50, 58)
+        stroke.Transparency = 0.4
+        stroke.Parent = TabButton
 
+        local SectionFrame = Instance.new("Frame")
         SectionFrame.Name = config.Name .. "_Section"
         SectionFrame.Size = UDim2.new(1, 0, 1, 0)
         SectionFrame.BackgroundTransparency = 1
         SectionFrame.Visible = false
+        SectionFrame.Parent = SectionHolder
 
-        local function TabActiveFlag(tab)
-            local FlagFrame = Instance.new("Frame", tab)
-            local UIGFlagFrame = Instance.new("UIGradient", FlagFrame)
+        Tab.Button = TabButton
+        Tab.Frame = SectionFrame
 
-            FlagFrame.Name = "FlagFrame"
-            FlagFrame.Position = UDim2.new(0,3,0,-1)
-            FlagFrame.Size = UDim2.new(0.02,0,1,0)
-            FlagFrame.BorderSizePixel = 0
-            FlagFrame.BackgroundColor3 = getgenv().Theme.BackgroundLine
-            UIGFlagFrame.Transparency = getgenv().Theme.UGLLine
-            UIGFlagFrame.Rotation = 90
-        end
-        
         TabButton.MouseButton1Click:Connect(function()
-            for _, v in pairs(SectionHolder:GetChildren()) do
+            for _, v in ipairs(SectionHolder:GetChildren()) do
                 if v:IsA("Frame") then v.Visible = false end
             end
-            for _, v in pairs(TabHolder:GetChildren()) do
+            for _, v in ipairs(TabHolder:GetChildren()) do
                 if v:IsA("TextButton") then
                     v.BackgroundColor3 = getgenv().Theme.Accent
-                    if v:FindFirstChild("FlagFrame") then v.FlagFrame:Destroy() end
+                    local flag = v:FindFirstChild("FlagFrame")
+                    if flag then flag:Destroy() end
                 end
             end
-
             SectionFrame.Visible = true
             TabButton.BackgroundColor3 = getgenv().Theme.Background
             Window.ActiveTab = Tab
-
             TabActiveFlag(TabButton)
         end)
 
-
+        if not Window.ActiveTab then
+            TabButton:Activate()
+            TabButton.BackgroundColor3 = getgenv().Theme.Background
+            SectionFrame.Visible = true
+            Window.ActiveTab = Tab
+            TabActiveFlag(TabButton)
+        end
 
         function Tab:Section(config)
             local Section = {}
             Section.Flags = {}
-            Tab.Sections[config.Name] = Section 
+            Tab.Sections[config.Name] = Section
 
-            local wrapper = Instance.new("Frame", SectionFrame)
-            local label = Instance.new("TextLabel", wrapper)
-            local section = Instance.new("ScrollingFrame", wrapper)
-            local UILLsection = Instance.new("UIListLayout", section)
-            local UIPsection = Instance.new("UIPadding", section)
-            local UISsection = Instance.new("UIStroke", section)
-            Section.Frame = section
-
+            local wrapper = Instance.new("Frame")
             wrapper.Name = config.Name or "Section"
             wrapper.BackgroundTransparency = 1
             wrapper.Size = config.Size or UDim2.new(0.48, 0, 1, 0)
             wrapper.Position = config.Position or UDim2.new(0, 0, 0, 0)
+            wrapper.Parent = SectionFrame
 
+            local label = Instance.new("TextLabel")
             label.Text = config.Name or "Section"
             label.TextColor3 = getgenv().Theme.TextSections
             label.BackgroundTransparency = 0
             label.BorderSizePixel = 0
             label.BackgroundColor3 = getgenv().Theme.Sections
             label.Font = Enum.Font.Gotham
-            label.TextSize = 17
+            label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Center
             label.Size = UDim2.new(1, 0, 0, 18)
-            label.Position = UDim2.new(0,0,0.003,0)
-            label.ZIndex = 2
+            label.Position = UDim2.new(0,0,0,0)
+            label.Parent = wrapper
 
-            section.Size = UDim2.new(1, 0, 1, -10)
-            section.Position = UDim2.new(0, 0, 0, 10)
+            local section = Instance.new("ScrollingFrame")
+            section.Size = UDim2.new(1, 0, 1, -22)
+            section.Position = UDim2.new(0, 0, 0, 22)
             section.BackgroundColor3 = getgenv().Theme.Sections
             section.BorderSizePixel = 0
             section.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            section.CanvasSize = UDim2.new(0, 0, 0, 0)
-            section.ScrollBarThickness = 4
+            section.CanvasSize = UDim2.new()
+            section.ScrollBarThickness = 3
+            section.ClipsDescendants = true
+            section.Parent = wrapper
+
+            local UISsection = Instance.new("UIStroke")
             UISsection.Color = getgenv().Theme.UISSections
             UISsection.Thickness = 1
+            UISsection.Transparency = 0.3
+            UISsection.Parent = section
 
-            UILLsection.Padding = UDim.new(0, 5)
+            local UILLsection = Instance.new("UIListLayout")
+            UILLsection.Padding = UDim.new(0, 6)
             UILLsection.SortOrder = Enum.SortOrder.LayoutOrder
-            
+            UILLsection.Parent = section
+
+            local UIPsection = Instance.new("UIPadding")
             UIPsection.PaddingTop = UDim.new(0, 10)
             UIPsection.PaddingLeft = UDim.new(0, 10)
             UIPsection.PaddingRight = UDim.new(0, 10)
             UIPsection.PaddingBottom = UDim.new(0, 10)
+            UIPsection.Parent = section
+
+            HookCanvas(section)
+            Section.Frame = section
 
             function Section:Dropdown(name, options, callback)
                 local items = options.items or {}
                 local default = options.default or items[1]
                 local flag = options.flag or name
                 callback = callback or function() end
-            
+
                 Section.Flags[flag] = default
-            
-                local Dropdown = Instance.new("Frame", self.Frame)
-                local Title = Instance.new("TextLabel", Dropdown)
-                local Holder = Instance.new("TextButton", Dropdown)
-                local ListFrame = Instance.new("Frame", Dropdown)
-                local UIList = Instance.new("UIListLayout", ListFrame)
-                local UIPadding = Instance.new("UIPadding", ListFrame)
-                
+
+                local Dropdown = Instance.new("Frame")
                 Dropdown.Name = "Dropdown"
                 Dropdown.BackgroundTransparency = 1
-                Dropdown.Size = UDim2.new(1, 0, 0, 25 + (#items * 25))
-            
+                Dropdown.Size = UDim2.new(1, 0, 0, 52)
+                Dropdown.Parent = section
+
+                local Title = Instance.new("TextLabel")
                 Title.Name = "Title"
                 Title.Text = name
                 Title.Font = Enum.Font.GothamBold
                 Title.TextSize = 12
                 Title.TextColor3 = getgenv().Theme.Text
                 Title.TextXAlignment = Enum.TextXAlignment.Left
-                Title.Size = UDim2.new(1, 0, 0, 12)
                 Title.BackgroundTransparency = 1
-                Title.Position = UDim2.new(0, 0, 0, 0)
-            
+                Title.Size = UDim2.new(1, 0, 0, 14)
+                Title.Parent = Dropdown
+
+                local Holder = Instance.new("TextButton")
                 Holder.Name = "Holder"
                 Holder.Text = default or "Select"
-                Holder.Size = UDim2.new(1, 0, 0, 20)
-                Holder.Position = UDim2.new(0, 0, 0, 12)
-                Holder.BackgroundColor3 = getgenv().Theme.Sections
+                Holder.Size = UDim2.new(1, 0, 0, 24)
+                Holder.Position = UDim2.new(0, 0, 0, 18)
+                Holder.BackgroundColor3 = getgenv().Theme.Accent
                 Holder.TextColor3 = getgenv().Theme.Text
                 Holder.BorderSizePixel = 0
                 Holder.Font = Enum.Font.Gotham
                 Holder.TextSize = 12
-                Holder.AutoButtonColor = false
-            
+                Holder.AutoButtonColor = true
+                Holder.Parent = Dropdown
+                local hc = Instance.new("UICorner")
+                hc.CornerRadius = UDim.new(0, 6)
+                hc.Parent = Holder
+
+                local ListFrame = Instance.new("Frame")
                 ListFrame.Name = "ListFrame"
                 ListFrame.BackgroundColor3 = getgenv().Theme.Accent
                 ListFrame.BorderSizePixel = 0
-                ListFrame.Position = UDim2.new(0, 0, 0, 32)
-                ListFrame.Size = UDim2.new(1, 0, 0, #items * 25)
+                ListFrame.Position = UDim2.new(0, 0, 0, 46)
+                ListFrame.Size = UDim2.new(1, 0, 0, 0)
                 ListFrame.Visible = false
                 ListFrame.ClipsDescendants = true
-            
+                ListFrame.Parent = Dropdown
+                local lfC = Instance.new("UICorner")
+                lfC.CornerRadius = UDim.new(0, 6)
+                lfC.Parent = ListFrame
+
+                local UIList = Instance.new("UIListLayout")
                 UIList.Padding = UDim.new(0, 3)
                 UIList.SortOrder = Enum.SortOrder.LayoutOrder
-            
+                UIList.Parent = ListFrame
+                local UIPadding = Instance.new("UIPadding")
                 UIPadding.PaddingTop = UDim.new(0, 3)
                 UIPadding.PaddingBottom = UDim.new(0, 3)
                 UIPadding.PaddingLeft = UDim.new(0, 3)
                 UIPadding.PaddingRight = UDim.new(0, 3)
-            
+                UIPadding.Parent = ListFrame
+
                 for _, v in ipairs(items) do
-                    local Option = Instance.new("TextButton", ListFrame)
+                    local Option = Instance.new("TextButton")
                     Option.Text = tostring(v)
-                    Option.Size = UDim2.new(1, 0, 0, 20)
+                    Option.Size = UDim2.new(1, 0, 0, 22)
                     Option.BackgroundTransparency = 1
                     Option.Font = Enum.Font.Gotham
                     Option.TextSize = 12
                     Option.TextColor3 = getgenv().Theme.Text
-                    Option.AutoButtonColor = false
-            
+                    Option.AutoButtonColor = true
+                    Option.Parent = ListFrame
+
                     Option.MouseButton1Click:Connect(function()
                         Holder.Text = v
                         Section.Flags[flag] = v
-                        ListFrame.Visible = false
+                        if ListFrame.Visible then
+                            pcall(function()
+                                TweenService:Create(ListFrame, TweenInfo.new(0.14), {Size = UDim2.new(1,0,0,0)}):Play()
+                            end)
+                            task.delay(0.15, function() ListFrame.Visible = false end)
+                        end
                         callback(v)
                     end)
                 end
-            
-                Holder.MouseButton1Click:Connect(function()
-                    ListFrame.Visible = not ListFrame.Visible
-                end)
+
+                local function openClose()
+                    if not ListFrame.Visible then
+                        ListFrame.Visible = true
+                        local height = UIList.AbsoluteContentSize.Y + 6
+                        pcall(function()
+                            TweenService:Create(ListFrame, TweenInfo.new(0.14), {Size = UDim2.new(1,0,0,height)}):Play()
+                        end)
+                    else
+                        pcall(function()
+                            TweenService:Create(ListFrame, TweenInfo.new(0.14), {Size = UDim2.new(1,0,0,0)}):Play()
+                        end)
+                        task.delay(0.15, function() ListFrame.Visible = false end)
+                    end
+                end
+
+                Holder.MouseButton1Click:Connect(openClose)
+
+                return {
+                    Set = function(_, val)
+                        Holder.Text = val
+                        Section.Flags[flag] = val
+                    end,
+                    Get = function() return Section.Flags[flag] end
+                }
             end
 
             function Section:Toggle(name, options, callback)
                 local default = options.default or false
                 local flag = options.flag or name
-                local state = options.state or false
+                local state = options.state
+                if state == nil then state = default end
                 callback = callback or function() end
-                
+
                 Section.Flags[flag] = state
-                
-                if default then
-                    task.spawn(function()
-                        callback(state)
-                    end)
-                end
 
-                local Toggle = Instance.new("Frame", self.Frame)
-                local Holder = Instance.new("Frame", Toggle)
-                local toggle = Instance.new("TextButton", Holder)
-                local Text_2 = Instance.new("TextButton", Toggle)
-                        
+                local Toggle = Instance.new("Frame")
                 Toggle.Name = "Toggle"
-                Toggle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 Toggle.BackgroundTransparency = 1
-                Toggle.Size = UDim2.new(1, 0, 0, 25)
+                Toggle.Size = UDim2.new(1, 0, 0, 26)
+                Toggle.Parent = section
 
+                local Holder = Instance.new("Frame")
                 Holder.Name = "Holder"
                 Holder.AnchorPoint = Vector2.new(1, 0.5)
                 Holder.BackgroundTransparency = 1
                 Holder.Position = UDim2.new(1, 0, 0.5, 0)
-                Holder.Size = UDim2.new(0, 25, 0, 25)
+                Holder.Size = UDim2.new(0, 44, 0, 22)
+                Holder.Parent = Toggle
 
-                toggle.Name = "Off"
-                toggle.Size = UDim2.new(1, 0, 1, 0)
-                toggle.BackgroundTransparency = 1
-                toggle.Font = Enum.Font.GothamBold
-                toggle.TextSize = 12
-                toggle.TextXAlignment = Enum.TextXAlignment.Left
+                local toggleBtn = Instance.new("TextButton")
+                toggleBtn.Name = "Switch"
+                toggleBtn.Size = UDim2.new(1, 0, 1, 0)
+                toggleBtn.BackgroundTransparency = 1
+                toggleBtn.Font = Enum.Font.GothamBold
+                toggleBtn.TextSize = 12
+                toggleBtn.TextXAlignment = Enum.TextXAlignment.Left
+                toggleBtn.Text = state and "On" or "Off"
+                toggleBtn.TextColor3 = state and Color3.fromRGB(110, 230, 185) or Color3.fromRGB(255, 100, 110)
+                toggleBtn.Parent = Holder
 
+                local Text_2 = Instance.new("TextButton")
                 Text_2.Name = "Text"
                 Text_2.Active = false
                 Text_2.BackgroundTransparency = 1
-                Text_2.Size = UDim2.new(1, 0, 1, 0)
+                Text_2.Size = UDim2.new(1, -52, 1, 0)
                 Text_2.Font = Enum.Font.GothamBold
                 Text_2.Text = name
                 Text_2.TextColor3 = getgenv().Theme.Text
                 Text_2.TextSize = 12
-                Text_2.TextStrokeColor3 = getgenv().Theme.Text
-                Text_2.TextStrokeTransparency = 0.92
                 Text_2.TextXAlignment = Enum.TextXAlignment.Left
+                Text_2.Parent = Toggle
 
-                if Section.Flags[flag] then
-                    toggle.Text = "On"
-                    toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
-                    toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
-                else
-                    toggle.Text = "Off"
-                    toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
-                    toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
+                local function setState(val: boolean, fire)
+                    Section.Flags[flag] = val
+                    toggleBtn.Text = val and "On" or "Off"
+                    toggleBtn.TextColor3 = val and Color3.fromRGB(110, 230, 185) or Color3.fromRGB(255, 100, 110)
+                    if fire ~= false then task.spawn(function() callback(val) end) end
+                end
+                setState(state, false)
+
+                local function onClick()
+                    setState(not Section.Flags[flag], true)
                 end
 
-                Text_2.MouseButton1Click:Connect(function()
-                    if Section.Flags[flag] then
-                        Section.Flags[flag] = false
-                        toggle.Text = "Off"
-                        toggle.TextColor3 = Color3.fromRGB(255, 0, 0)
-                        toggle.TextStrokeColor3 = Color3.fromRGB(255, 0, 0)
-                    else
-                        Section.Flags[flag] = true
-                        toggle.Text = "On"
-                        toggle.TextColor3 = Color3.fromRGB(0, 255, 0)
-                        toggle.TextStrokeColor3 = Color3.fromRGB(0, 255, 0)
-                    end
+                toggleBtn.MouseButton1Click:Connect(onClick)
+                Text_2.MouseButton1Click:Connect(onClick)
 
-                    task.spawn(function()
-                        callback(Section.Flags[flag])
-                    end)
-                end)
+                return {
+                    Set = function(_, v) setState(v, true) end,
+                    Get = function() return Section.Flags[flag] end
+                }
             end
 
-            function Section:Button2(name, options, callback)
-                local default = options.default or false
-                local flag = options.flag or name
-                local state = options.state or false
+            function Section:Button(name, callback)
                 callback = callback or function() end
-
-                Section.Flags[flag] = state
-                
-                if default then
-                    task.spawn(function()
-                        callback(state)
-                    end)
-                end
-
-
+                local Button = Instance.new("TextButton")
+                Button.Text = name
+                Button.Size = UDim2.new(1, 0, 0, 26)
+                Button.BackgroundColor3 = getgenv().Theme.Accent
+                Button.TextColor3 = getgenv().Theme.Text
+                Button.BorderSizePixel = 0
+                Button.Font = Enum.Font.Gotham
+                Button.TextSize = 12
+                Button.AutoButtonColor = true
+                Button.Parent = section
+                local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0,6); bc.Parent = Button
+                local bs = Instance.new("UIStroke"); bs.Thickness = 1; bs.Color = Color3.fromRGB(45,50,58); bs.Transparency = 0.4; bs.Parent = Button
+                Button.MouseButton1Click:Connect(function() task.spawn(callback) end)
+                return Button
             end
-            
-            UpdateCanvas(section)
+
             return Section
         end
 
         return Tab
-    end 
-    
+    end
+
+    local LT = 0
+    table.insert(Window._connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == _G.HideGuiBind then
+            if tick() - LT < 0.3 then return end
+            LT = tick()
+            Window:SetVisible(not Window.Visible)
+        end
+    end))
+
     return Window
 end
-
-local LT: number = 0
-local Window = GUILibrary:Window()
-
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == _G.HideGuiBind then
-        if tick() - LT < 0.3 then return end
-        LT = tick()
-        Window:SetVisible(not Window.Visible)
-    end
-end)
-
-return GUILibrary
