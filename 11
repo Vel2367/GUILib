@@ -2,9 +2,11 @@
 local GuiLib = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local DataStoreService = game:GetService("DataStoreService")
-local SettingsStore = DataStoreService:GetDataStore("GuiSettingsStore")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local localSettings = {}
 
+-- утилиты
 local function tween(o, t, props)
 	return TweenService:Create(o, TweenInfo.new(t, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
 end
@@ -16,15 +18,29 @@ local function mk(className, props, parent)
 	return o
 end
 
+-- сохранение / загрузка локально
+function GuiLib:SaveSetting(k, v)
+	localSettings[k] = v
+	player:SetAttribute(k, v)
+end
+
+function GuiLib:LoadSetting(k, def)
+	local v = player:GetAttribute(k)
+	if v == nil then v = localSettings[k] or def end
+	return v
+end
+
+-- ScreenGui
 function GuiLib:CreateScreen(name, parent)
 	local g = Instance.new("ScreenGui")
 	g.Name = name or "GuiScreen"
 	g.IgnoreGuiInset = true
 	g.ResetOnSpawn = false
-	g.Parent = parent or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	g.Parent = parent or player:WaitForChild("PlayerGui")
 	return g
 end
 
+-- Frame
 function GuiLib:CreateFrame(props)
 	local f = mk("Frame", {
 		Name = props.Name or "Frame",
@@ -38,6 +54,7 @@ function GuiLib:CreateFrame(props)
 	return f
 end
 
+-- Draggable
 function GuiLib:MakeDraggable(f, h)
 	local handle = h or f
 	local drag, start, pos
@@ -59,6 +76,7 @@ function GuiLib:MakeDraggable(f, h)
 	end)
 end
 
+-- Topbar
 function GuiLib:CreateTopbar(props)
 	local p = props.Parent
 	local h = props.Height or 30
@@ -80,22 +98,26 @@ function GuiLib:CreateTopbar(props)
 	return b,c
 end
 
-function GuiLib:BindKeyToggle(i,key)
-	key=key or Enum.KeyCode.P
-	UserInputService.InputBegan:Connect(function(inp,g)
+-- клавиша для показа/скрытия
+function GuiLib:BindKeyToggle(i, key)
+	key = key or Enum.KeyCode.P
+	UserInputService.InputBegan:Connect(function(inp, g)
 		if g then return end
-		if inp.KeyCode==key then i.Visible=not i.Visible end
+		if inp.KeyCode == key then
+			i.Visible = not i.Visible
+		end
 	end)
 end
 
+-- Toggle
 function GuiLib:CreateToggle(props)
-	local r=mk("Frame",{Size=props.Size or UDim2.new(1,-20,0,30),Position=props.Position or UDim2.new(0,10,0,0),BackgroundTransparency=1,Parent=props.Parent})
-	local l=mk("TextLabel",{Text=props.Text or "Toggle",Size=UDim2.new(1,-60,1,0),TextColor3=Color3.new(1,1,1),BackgroundTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,Parent=r})
-	local b=mk("TextButton",{Size=UDim2.new(0,46,0,22),Position=UDim2.new(1,-46,0.5,-11),BackgroundColor3=Color3.fromRGB(80,80,80),Parent=r,AutoButtonColor=false})
-	local k=mk("Frame",{Size=UDim2.new(0,20,0,18),Position=UDim2.new(0,3,0.5,-9),BackgroundColor3=Color3.fromRGB(200,200,200),Parent=b})
-	local s=props.State==true
+	local r = mk("Frame",{Size=props.Size or UDim2.new(1,-20,0,30),Position=props.Position or UDim2.new(0,10,0,0),BackgroundTransparency=1,Parent=props.Parent})
+	local l = mk("TextLabel",{Text=props.Text or "Toggle",Size=UDim2.new(1,-60,1,0),TextColor3=Color3.new(1,1,1),BackgroundTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,Parent=r})
+	local b = mk("TextButton",{Size=UDim2.new(0,46,0,22),Position=UDim2.new(1,-46,0.5,-11),BackgroundColor3=Color3.fromRGB(80,80,80),Parent=r,AutoButtonColor=false})
+	local k = mk("Frame",{Size=UDim2.new(0,20,0,18),Position=UDim2.new(0,3,0.5,-9),BackgroundColor3=Color3.fromRGB(200,200,200),Parent=b})
+	local s = props.State == true
 	local function setv(v)
-		s=v
+		s = v
 		if s then
 			tween(b,0.15,{BackgroundColor3=Color3.fromRGB(60,160,90)})
 			tween(k,0.15,{Position=UDim2.new(1,-23,0.5,-9)})
@@ -110,49 +132,63 @@ function GuiLib:CreateToggle(props)
 	return {Root=r,Set=setv,Get=function()return s end}
 end
 
+-- Dropdown
 function GuiLib:CreateDropdown(props)
-	local items=props.Items or {"1","2"}
-	local idx=props.DefaultIndex or 1
-	local r=mk("Frame",{Size=props.Size or UDim2.new(1,-20,0,30),Position=props.Position or UDim2.new(0,10,0,0),BackgroundTransparency=1,Parent=props.Parent})
-	local b=mk("TextButton",{Text=items[idx] or "Select",Size=UDim2.new(1,0,1,0),BackgroundColor3=Color3.fromRGB(50,50,50),TextColor3=Color3.new(1,1,1),Parent=r})
-	local list=mk("Frame",{Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,1,2),BackgroundColor3=Color3.fromRGB(40,40,40),Visible=false,Parent=r})
+	local items = props.Items or {"1","2"}
+	local idx = props.DefaultIndex or 1
+	local r = mk("Frame",{Size=props.Size or UDim2.new(1,-20,0,30),Position=props.Position or UDim2.new(0,10,0,0),BackgroundTransparency=1,Parent=props.Parent})
+	local b = mk("TextButton",{Text=items[idx] or "Select",Size=UDim2.new(1,0,1,0),BackgroundColor3=Color3.fromRGB(50,50,50),TextColor3=Color3.new(1,1,1),Parent=r})
+	local list = mk("Frame",{Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,1,2),BackgroundColor3=Color3.fromRGB(40,40,40),Visible=false,Parent=r})
 	mk("UIListLayout",{Parent=list})
 	local function rebuild()
-		for _,c in ipairs(list:GetChildren())do if c:IsA("TextButton")then c:Destroy()end end
-		for i,t in ipairs(items)do
-			local o=mk("TextButton",{Text=t,Size=UDim2.new(1,0,0,26),BackgroundColor3=Color3.fromRGB(60,60,60),TextColor3=Color3.new(1,1,1),Parent=list})
+		for _, c in ipairs(list:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+		for i, t in ipairs(items) do
+			local o = mk("TextButton",{Text=t,Size=UDim2.new(1,0,0,26),BackgroundColor3=Color3.fromRGB(60,60,60),TextColor3=Color3.new(1,1,1),Parent=list})
 			o.MouseButton1Click:Connect(function()
-				idx=i;b.Text=t;list.Visible=false;list.Size=UDim2.new(1,0,0,0)
+				idx = i
+				b.Text = t
+				list.Visible = false
+				list.Size = UDim2.new(1,0,0,0)
 				if props.Callback then props.Callback(i,t) end
 			end)
 		end
 	end
 	rebuild()
 	b.MouseButton1Click:Connect(function()
-		if list.Visible then tween(list,0.15,{Size=UDim2.new(1,0,0,0)}) task.wait(0.15) list.Visible=false else
-			list.Visible=true; tween(list,0.15,{Size=UDim2.new(1,0,0,#items*30)})
+		if list.Visible then
+			tween(list,0.15,{Size=UDim2.new(1,0,0,0)})
+			task.wait(0.15)
+			list.Visible=false
+		else
+			list.Visible=true
+			tween(list,0.15,{Size=UDim2.new(1,0,0,#items*30)})
 		end
 	end)
-	return{Root=r,GetIndex=function()return idx end,GetText=function()return items[idx] end}
+	return {Root=r,GetIndex=function()return idx end,GetText=function()return items[idx] end}
 end
 
+-- Slider
 function GuiLib:CreateSlider(props)
-	local r=mk("Frame",{Size=props.Size or UDim2.new(1,-20,0,34),Position=props.Position or UDim2.new(0,10,0,0),BackgroundTransparency=1,Parent=props.Parent})
-	local l=mk("TextLabel",{Text=props.Text or "Slider",TextColor3=Color3.new(1,1,1),BackgroundTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,Size=UDim2.new(1,0,0,16),Parent=r})
-	local bg=mk("Frame",{Size=UDim2.new(1,0,0,8),Position=UDim2.new(0,0,0,20),BackgroundColor3=Color3.fromRGB(70,70,70),Parent=r})
-	local fill=mk("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=Color3.fromRGB(90,160,250),Parent=bg})
-	local val=props.Default or 0
-	local max=props.Max or 100
-	local dragging=false
+	local r = mk("Frame",{Size=props.Size or UDim2.new(1,-20,0,34),Position=props.Position or UDim2.new(0,10,0,0),BackgroundTransparency=1,Parent=props.Parent})
+	local l = mk("TextLabel",{Text=props.Text or "Slider",TextColor3=Color3.new(1,1,1),BackgroundTransparency=1,TextXAlignment=Enum.TextXAlignment.Left,Size=UDim2.new(1,0,0,16),Parent=r})
+	local bg = mk("Frame",{Size=UDim2.new(1,0,0,8),Position=UDim2.new(0,0,0,20),BackgroundColor3=Color3.fromRGB(70,70,70),Parent=r})
+	local fill = mk("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=Color3.fromRGB(90,160,250),Parent=bg})
+	local val = props.Default or 0
+	local max = props.Max or 100
+	local dragging = false
 	local function setv(v)
-		v=math.clamp(v,0,max)
-		val=v
-		fill.Size=UDim2.new(v/max,0,1,0)
+		v = math.clamp(v,0,max)
+		val = v
+		fill.Size = UDim2.new(v/max,0,1,0)
 		if props.Callback then props.Callback(v) end
 	end
 	bg.InputBegan:Connect(function(i)
-		if i.UserInputType==Enum.UserInputType.MouseButton1 then dragging=true setv(((i.Position.X-bg.AbsolutePosition.X)/bg.AbsoluteSize.X)*max)
-			i.Changed:Connect(function()if i.UserInputState==Enum.UserInputState.End then dragging=false end end)
+		if i.UserInputType==Enum.UserInputType.MouseButton1 then
+			dragging=true
+			setv(((i.Position.X-bg.AbsolutePosition.X)/bg.AbsoluteSize.X)*max)
+			i.Changed:Connect(function()
+				if i.UserInputState==Enum.UserInputState.End then dragging=false end
+			end)
 		end
 	end)
 	bg.InputChanged:Connect(function(i)
@@ -161,24 +197,18 @@ function GuiLib:CreateSlider(props)
 		end
 	end)
 	setv(val)
-	return{Root=r,Set=setv,Get=function()return val end}
+	return {Root=r,Set=setv,Get=function()return val end}
 end
 
-function GuiLib:SaveSetting(k,v)
-	pcall(function() SettingsStore:SetAsync(k,v) end)
-end
-function GuiLib:LoadSetting(k,def)
-	local s;pcall(function() s=SettingsStore:GetAsync(k) end)
-	return s or def
-end
-
+-- Settings menu
 function GuiLib:CreateSettingsMenu(props)
-	local p=props.Parent
-	local f=self:CreateFrame({Parent=p,Size=UDim2.new(0,380,0,280),Position=UDim2.new(0.5,-190,0.5,-140)})
-	local tb,ct=self:CreateTopbar({Parent=f,Title="Настройки GUI",ExpandedHeight=280})
+	local p = props.Parent
+	local f = self:CreateFrame({Parent=p,Size=UDim2.new(0,380,0,280),Position=UDim2.new(0.5,-190,0.5,-140)})
+	local tb,ct = self:CreateTopbar({Parent=f,Title="Настройки GUI",ExpandedHeight=280})
 	self:MakeDraggable(f,tb)
 	self:BindKeyToggle(f,Enum.KeyCode.P)
-	local theme=self:CreateDropdown({
+
+	local theme = self:CreateDropdown({
 		Parent=ct,
 		Position=UDim2.new(0,8,0,8),
 		Items={"Dark","Light","Aqua"},
@@ -187,7 +217,8 @@ function GuiLib:CreateSettingsMenu(props)
 			self:SaveSetting("themeIndex",i)
 		end
 	})
-	local uiToggle=self:CreateToggle({
+
+	local uiToggle = self:CreateToggle({
 		Parent=ct,
 		Position=UDim2.new(0,8,0,50),
 		Text="Показывать основное окно",
@@ -196,7 +227,8 @@ function GuiLib:CreateSettingsMenu(props)
 			self:SaveSetting("mainVisible",on)
 		end
 	})
-	local sld=self:CreateSlider({
+
+	local sld = self:CreateSlider({
 		Parent=ct,
 		Position=UDim2.new(0,8,0,94),
 		Text="Прозрачность",
@@ -204,7 +236,7 @@ function GuiLib:CreateSettingsMenu(props)
 		Default=self:LoadSetting("uiAlpha",1),
 		Callback=function(v)
 			self:SaveSetting("uiAlpha",v)
-			p.BackgroundTransparency=1-v
+			p.BackgroundTransparency = 1 - v
 		end
 	})
 	return f,tb,ct
