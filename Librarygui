@@ -539,3 +539,5 @@ function GUILibrary:Window()
 
     return Window
 end
+
+return GUILibrary
