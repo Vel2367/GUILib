@@ -257,9 +257,19 @@ function GUILibrary:Window()
         end)
 
         if not Window.ActiveTab then
-            TabButton:Activate()
-            TabButton.BackgroundColor3 = getgenv().Theme.Background
+            for _, v in ipairs(SectionHolder:GetChildren()) do
+                if v:IsA("Frame") then v.Visible = false end
+            end
+            for _, v in ipairs(TabHolder:GetChildren()) do
+                if v:IsA("TextButton") then
+                    v.BackgroundColor3 = getgenv().Theme.Accent
+                    local flag = v:FindFirstChild("FlagFrame")
+                    if flag then flag:Destroy() end
+                end
+            end
+        
             SectionFrame.Visible = true
+            TabButton.BackgroundColor3 = getgenv().Theme.Background
             Window.ActiveTab = Tab
             TabActiveFlag(TabButton)
         end
