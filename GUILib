@@ -139,7 +139,11 @@ end
 function UI:Window(opts)
     opts = opts or {}
     local Theme = useTheme(opts.theme)
-    local hideKey = opts.hideKey or Enum.KeyCode.P
+    local hideKeyDefault = opts.hideKey or Enum.KeyCode.P
+    Window.HideKey = hideKeyDefault
+    Window._isRebinding = false
+    Window._settingsOpen = false
+
     do
         local old = CoreGui:FindFirstChild("ScriptGui")
         if old then old:Destroy() end
@@ -277,6 +281,184 @@ function UI:Window(opts)
         {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)},
         nil
     )
+
+    do
+        local function KeyLabel(kc)
+            if typeof(kc) ~= "EnumItem" then return "None" end
+            local map = {
+                LeftControl="LCtrl", RightControl="RCtrl",
+                LeftShift="LShift", RightShift="RShift",
+                LeftAlt="LAlt", RightAlt="RAlt",
+                Return="Enter", Backquote="`", Minus="-", Equals="=",
+                LeftBracket="[", RightBracket="]", BackSlash="\\",
+                Semicolon=";", Quote="'", Comma=",", Period=".", Slash="/",
+                Space="Space"
+            }
+            return map[kc.Name] or kc.Name
+        end
+    
+        local Overlay = Instance.new("Frame")
+        Overlay.Name = "SettingsOverlay"
+        Overlay.ZIndex = 1000
+        Overlay.Size = UDim2.fromScale(1,1)
+        Overlay.BackgroundColor3 = Color3.new(0,0,0)
+        Overlay.BackgroundTransparency = 1
+        Overlay.Visible = false
+        Overlay.Parent = ScriptGui
+    
+        local Modal = Instance.new("Frame")
+        Modal.Name = "SettingsModal"
+        Modal.AnchorPoint = Vector2.new(0.5, 0.5)
+        Modal.Position = UDim2.new(0.5, 0, 0.5, 0)
+        Modal.Size = UDim2.new(0, 420, 0, 210) -- «чуть меньше»
+        Modal.BackgroundColor3 = Theme.Background
+        Modal.BorderSizePixel = 0
+        Modal.BackgroundTransparency = 0
+        Modal.ZIndex = 1010
+        Modal.Parent = Overlay
+        local mC = Instance.new("UICorner"); mC.CornerRadius = UDim.new(0, 12); mC.Parent = Modal
+        local mS = Instance.new("UIStroke"); mS.Color = Color3.fromRGB(45,50,58); mS.Transparency = 0.5; mS.Parent = Modal
+        local mG = Instance.new("UIGradient"); mG.Color = Theme.BackgroundMain; mG.Rotation = 35; mG.Parent = Modal
+    
+        local Head = Instance.new("Frame"); Head.Size = UDim2.new(1, 0, 0, 42); Head.BackgroundColor3 = Theme.TitleBar
+        Head.BorderSizePixel = 0; Head.ZIndex = 1011; Head.Parent = Modal
+        local hC = Instance.new("UICorner"); hC.CornerRadius = UDim.new(0, 12); hC.Parent = Head
+    
+        local Title = Instance.new("TextLabel")
+        Title.BackgroundTransparency = 1
+        Title.Text = "Settings"
+        Title.Font = Enum.Font.GothamBold
+        Title.TextSize = 14
+        Title.TextColor3 = Theme.Text
+        Title.TextXAlignment = Enum.TextXAlignment.Left
+        Title.Size = UDim2.new(1, -60, 1, 0)
+        Title.Position = UDim2.new(0, 14, 0, 0)
+        Title.ZIndex = 1012
+        Title.Parent = Head
+    
+        local Close = Instance.new("TextButton")
+        Close.Text = "✕"
+        Close.Font = Enum.Font.GothamBold
+        Close.TextSize = 16
+        Close.TextColor3 = Theme.SettingButtonText
+        Close.BackgroundColor3 = Theme.SettingButton
+        Close.AutoButtonColor = false
+        Close.BorderSizePixel = 0
+        Close.ZIndex = 1012
+        Close.Size = UDim2.new(0, 30, 0, 30)
+        Close.Position = UDim2.new(1, -38, 0.5, -15)
+        Close.Parent = Head
+        local cC = Instance.new("UICorner"); cC.CornerRadius = UDim.new(0,8); cC.Parent = Close
+        HoverState(Close, {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)}, nil)
+    
+        local Body = Instance.new("Frame")
+        Body.BackgroundTransparency = 1
+        Body.ZIndex = 1011
+        Body.Position = UDim2.new(0, 14, 0, 52)
+        Body.Size = UDim2.new(1, -28, 1, -66)
+        Body.Parent = Modal
+    
+        local Row = Instance.new("Frame")
+        Row.BackgroundTransparency = 1
+        Row.Size = UDim2.new(1, 0, 0, 54)
+        Row.Parent = Body
+    
+        local RowTitle = Instance.new("TextLabel")
+        RowTitle.BackgroundTransparency = 1
+        RowTitle.Text = "Toggle UI Hotkey"
+        RowTitle.Font = Enum.Font.GothamBold
+        RowTitle.TextSize = 12
+        RowTitle.TextColor3 = Theme.Text
+        RowTitle.TextXAlignment = Enum.TextXAlignment.Left
+        RowTitle.Position = UDim2.new(0,0,0,0)
+        RowTitle.Size = UDim2.new(1, -140, 0, 18)
+        RowTitle.ZIndex = 1011
+        RowTitle.Parent = Row
+    
+        local Hint = Instance.new("TextLabel")
+        Hint.BackgroundTransparency = 1
+        Hint.Text = "Click to rebind. Press ESC to cancel."
+        Hint.Font = Enum.Font.Gotham
+        Hint.TextSize = 11
+        Hint.TextColor3 = Theme.SubText
+        Hint.TextXAlignment = Enum.TextXAlignment.Left
+        Hint.Position = UDim2.new(0,0,0,20)
+        Hint.Size = UDim2.new(1, -140, 0, 18)
+        Hint.ZIndex = 1011
+        Hint.Parent = Row
+    
+        local BindButton = Instance.new("TextButton")
+        BindButton.Text = KeyLabel(Window.HideKey)
+        BindButton.Font = Enum.Font.GothamBold
+        BindButton.TextSize = 12
+        BindButton.TextColor3 = Theme.SettingButtonText
+        BindButton.BackgroundColor3 = Theme.SettingButton
+        BindButton.AutoButtonColor = false
+        BindButton.BorderSizePixel = 0
+        BindButton.ZIndex = 1011
+        BindButton.Size = UDim2.new(0, 120, 0, 28)
+        BindButton.Position = UDim2.new(1, -120, 0, 10)
+        BindButton.Parent = Row
+        local bbC = Instance.new("UICorner"); bbC.CornerRadius = UDim.new(0,8); bbC.Parent = BindButton
+        HoverState(BindButton, {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)}, nil)
+    
+        local function openModal()
+            if Overlay.Visible then return end
+            Overlay.Visible = true
+            Window._settingsOpen = true
+            Modal.Position = UDim2.new(0.5, 0, 0.5, 8)
+            Modal.BackgroundTransparency = 0.1
+            Overlay.BackgroundTransparency = 1
+            TweenService:Create(Overlay, TWEEN_MEDIUM, {BackgroundTransparency = 0.35}):Play()
+            TweenService:Create(Modal,   TWEEN_MEDIUM, {Position = UDim2.new(0.5,0,0.5,0), BackgroundTransparency = 0}):Play()
+        end
+    
+        local function closeModal()
+            if not Overlay.Visible then return end
+            Window._settingsOpen = false
+            TweenService:Create(Overlay, TWEEN_FAST, {BackgroundTransparency = 1}):Play()
+            TweenService:Create(Modal,   TWEEN_FAST, {Position = UDim2.new(0.5,0,0.5,8), BackgroundTransparency = 0.1}):Play()
+            task.delay(0.15, function() Overlay.Visible = false end)
+        end
+    
+        Overlay.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local mpos = UserInputService:GetMouseLocation()
+                local p = Modal.AbsolutePosition
+                local s = Modal.AbsoluteSize
+                local inside = (mpos.X >= p.X and mpos.X <= p.X+s.X and mpos.Y >= p.Y and mpos.Y <= p.Y+s.Y)
+                if not inside then closeModal() end
+            end
+        end)
+        Close.MouseButton1Click:Connect(closeModal)
+    
+        BindButton.MouseButton1Click:Connect(function()
+            if Window._isRebinding then return end
+            Window._isRebinding = true
+            BindButton.Text = "Press any key..."
+            local conn; conn = UserInputService.InputBegan:Connect(function(inp, gp)
+                if gp then return end
+                if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+                local kc = inp.KeyCode
+                if kc == Enum.KeyCode.Unknown then return end
+                if kc == Enum.KeyCode.Escape then
+                    Window._isRebinding = false
+                    BindButton.Text = KeyLabel(Window.HideKey)
+                    if conn then conn:Disconnect() end
+                    return
+                end
+                Window.HideKey = kc
+                BindButton.Text = KeyLabel(kc)
+                Window._isRebinding = false
+                if conn then conn:Disconnect() end
+            end)
+            table.insert(Window._connections, conn)
+        end)
+    
+        SettingsButton.MouseButton1Click:Connect(function()
+            if Overlay.Visible then closeModal() else openModal() end
+        end)
+    end
 
     local TabHolder = Instance.new("ScrollingFrame")
     TabHolder.Name = "TabsHolder"
@@ -838,9 +1020,11 @@ function UI:Window(opts)
     local LT = 0
     table.insert(Window._connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
-        if input.KeyCode == hideKey then
-            if tick() - LT < 0.3 then return end
-            LT = tick()
+        if Window._isRebinding or Window._settingsOpen then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Window.HideKey then
+            local now = os.clock()
+            if now - LT < 0.3 then return end
+            LT = now
             Window:SetVisible(not Window.Visible)
         end
     end))
