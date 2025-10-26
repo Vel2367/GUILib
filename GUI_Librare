@@ -407,10 +407,10 @@ function GUILibrary:Window()
             secStroke.Parent = section
 
             local secGradient = Instance.new("UIGradient")
-            secGradient.Color = ColorSequence.new(
+            secGradient.Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(28,31,36)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(30,34,39))
-            )
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(30,34,39)),
+            })
             secGradient.Rotation = 90
             secGradient.Parent = section
 
