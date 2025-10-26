@@ -111,7 +111,7 @@ function GUILibrary:Window()
     ScriptGui.Enabled = true
     ScriptGui.Parent = CoreGui
 
-    -- контейнер
+
     local MainHolder = Instance.new("Frame")
     MainHolder.Size = UDim2.new(0, 660, 0, 440)
     MainHolder.Position = UDim2.new(0.5, -330, 0.5, -220)
@@ -135,7 +135,6 @@ function GUILibrary:Window()
     UIGMain.Rotation = 35
     UIGMain.Parent = Main
 
-    -- >>> исправленная анимация открытия (UIScale + BackgroundTransparency)
     local uiScale = Instance.new("UIScale")
     uiScale.Scale = 0.96
     uiScale.Parent = Main
@@ -149,9 +148,7 @@ function GUILibrary:Window()
         BackgroundTransparency = 0,
         Position = startPos
     }):Play()
-    -- <<<
 
-    -- заголовок
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Size = UDim2.new(1, 0, 0, 46)
@@ -236,12 +233,14 @@ function GUILibrary:Window()
     TabHolder.ScrollBarThickness = 2
     TabHolder.ClipsDescendants = true
     TabHolder.Parent = Main
+
     local UILLTabHolder = Instance.new("UIListLayout")
     UILLTabHolder.Padding = UDim.new(0,8)
     UILLTabHolder.VerticalAlignment = Enum.VerticalAlignment.Top
     UILLTabHolder.FillDirection = Enum.FillDirection.Vertical
     UILLTabHolder.SortOrder = Enum.SortOrder.LayoutOrder
     UILLTabHolder.Parent = TabHolder
+
     HookCanvas(TabHolder)
 
     local SectionHolder = Instance.new("Frame")
@@ -250,8 +249,15 @@ function GUILibrary:Window()
     SectionHolder.Size = UDim2.new(0.71, 0, 1, -72)
     SectionHolder.BackgroundTransparency = 1
     SectionHolder.BorderSizePixel = 0
-    SectionHolder.ClipsDescendants = true
+    SectionHolder.ClipsDescendants = false
     SectionHolder.Parent = Main
+
+    local SectionsPad = Instance.new("UIPadding")
+    SectionsPad.PaddingLeft   = UDim.new(0, 6)
+    SectionsPad.PaddingRight  = UDim.new(0, 6)
+    SectionsPad.PaddingTop    = UDim.new(0, 2)
+    SectionsPad.PaddingBottom = UDim.new(0, 6)
+    SectionsPad.Parent = SectionHolder
 
     MakeDrag(MainHolder, TitleBar)
 
@@ -385,8 +391,8 @@ function GUILibrary:Window()
 
             local section = Instance.new("ScrollingFrame")
             section.Name = "SectionBody"
-            section.Size = UDim2.new(1, 0, 1, -24)
-            section.Position = UDim2.new(0, 0, 0, 24)
+            section.Size     = UDim2.new(1, -4, 1, -28)
+            section.Position = UDim2.new(0, 2, 0, 26)
             section.BackgroundColor3 = getgenv().Theme.Sections
             section.BorderSizePixel = 0
             section.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -429,7 +435,6 @@ function GUILibrary:Window()
             HookCanvas(section)
             Section.Frame = section
 
-            -- Dropdown
             function Section:Dropdown(name, options, callback)
                 local items = options.items or {}
                 local default = options.default or items[1]
