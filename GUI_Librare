@@ -1,4 +1,4 @@
--- GUILibrary (polished menu visuals: shadow, hover, focus, micro-animations)
+-- GUILibrary (polished visuals + fixed open animation, no UITransparency)
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -92,52 +92,12 @@ local function MakeDrag(frame: Frame, handle: Instance)
     end)
 end
 
--- simple hover helper
 local function HoverColor(btn: Instance, idle: Color3, hover: Color3)
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {BackgroundColor3 = hover}):Play()
     end)
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.16, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {BackgroundColor3 = idle}):Play()
-    end)
-end
-
--- soft drop shadow (no assets)
-local function AddShadow(target: Frame, radius: number?)
-    local holder = Instance.new("Frame")
-    holder.Name = "Shadow"
-    holder.ZIndex = target.ZIndex - 1
-    holder.BackgroundTransparency = 1
-    holder.Size = UDim2.new(1, 24, 1, 24)
-    holder.Position = UDim2.new(0, -12, 0, -12)
-    holder.Parent = target.Parent
-
-    local shadow = Instance.new("Frame")
-    shadow.BackgroundColor3 = Color3.new(0,0,0)
-    shadow.BackgroundTransparency = 0.9
-    shadow.Size = UDim2.new(1, 0, 1, 0)
-    shadow.Position = UDim2.new(0, 0, 0, 0)
-    shadow.Parent = holder
-
-    local g = Instance.new("UIGradient")
-    g.Color = ColorSequence.new(Color3.new(0,0,0), Color3.new(0,0,0))
-    g.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.7),
-        NumberSequenceKeypoint.new(0.55, 0.9),
-        NumberSequenceKeypoint.new(1, 1)
-    }
-    g.Rotation = 90
-    g.Parent = shadow
-
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, radius or 12)
-    c.Parent = shadow
-
-    target:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-        holder.Position = UDim2.new(0, target.Position.X.Offset - 12, 0, target.Position.Y.Offset - 12)
-    end)
-    target:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-        holder.Size = UDim2.new(1, 24, 1, 24)
     end)
 end
 
@@ -151,7 +111,7 @@ function GUILibrary:Window()
     ScriptGui.Enabled = true
     ScriptGui.Parent = CoreGui
 
-    -- container for shadow
+    -- контейнер
     local MainHolder = Instance.new("Frame")
     MainHolder.Size = UDim2.new(0, 660, 0, 440)
     MainHolder.Position = UDim2.new(0.5, -330, 0.5, -220)
@@ -166,8 +126,6 @@ function GUILibrary:Window()
     Main.BorderSizePixel = 0
     Main.Parent = MainHolder
 
-    AddShadow(Main, 14)
-
     local UICMain = Instance.new("UICorner")
     UICMain.CornerRadius = UDim.new(0, 12)
     UICMain.Parent = Main
@@ -177,24 +135,23 @@ function GUILibrary:Window()
     UIGMain.Rotation = 35
     UIGMain.Parent = Main
 
-    -- open animation
-    MainHolder.UITransparency = 1
-    MainHolder.Visible = true
-    MainHolder:SetAttribute("scale", 0.96)
-    MainHolder.AnchorPoint = Vector2.new(0,0)
-    MainHolder.Position = UDim2.new(MainHolder.Position.X.Scale, MainHolder.Position.X.Offset, MainHolder.Position.Y.Scale, MainHolder.Position.Y.Offset)
-    MainHolder.Parent = ScriptGui
-    Main.AnchorPoint = Vector2.new(0.5,0.5)
-    Main.Position = UDim2.new(0.5,0,0.5,0)
-    Main.Size = UDim2.new(1, -20, 1, -20)
-    Main.Parent = MainHolder
+    -- >>> исправленная анимация открытия (UIScale + BackgroundTransparency)
+    local uiScale = Instance.new("UIScale")
+    uiScale.Scale = 0.96
+    uiScale.Parent = Main
 
-    Main.BackgroundTransparency = 0.06
-    MainHolder.Visible = true
-    MainHolder.Parent = ScriptGui
-    TweenService:Create(Main, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
+    local startPos = Main.Position
+    Main.BackgroundTransparency = 0.1
+    Main.Position = startPos + UDim2.fromOffset(0, 8)
 
-    -- top bar
+    TweenService:Create(uiScale, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Scale = 1}):Play()
+    TweenService:Create(Main, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0,
+        Position = startPos
+    }):Play()
+    -- <<<
+
+    -- заголовок
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Size = UDim2.new(1, 0, 0, 46)
@@ -244,7 +201,6 @@ function GUILibrary:Window()
     UIGLine.Rotation = 90
     UIGLine.Parent = AccentLine
 
-    -- subtle pulse
     task.spawn(function()
         while AccentLine.Parent do
             TweenService:Create(AccentLine, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.15}):Play()
@@ -288,7 +244,6 @@ function GUILibrary:Window()
     UILLTabHolder.Parent = TabHolder
     HookCanvas(TabHolder)
 
-    -- right pane
     local SectionHolder = Instance.new("Frame")
     SectionHolder.Name = "SectionsHolder"
     SectionHolder.Position = UDim2.new(0.26, 0, 0, 60)
@@ -389,10 +344,7 @@ function GUILibrary:Window()
         end
 
         TabButton.MouseButton1Click:Connect(activate)
-
-        if not Window.ActiveTab then
-            activate()
-        end
+        if not Window.ActiveTab then activate() end
 
         function Tab:Section(config)
             local Section = {}
