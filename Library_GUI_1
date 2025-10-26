@@ -33,6 +33,9 @@ getgenv().Theme = {
     Sections          = Color3.fromRGB(30, 34, 39),
     TextSections      = Color3.fromRGB(200, 210, 220),
     UISSections       = Color3.fromRGB(60, 70, 80)
+    SliderTrack       = Color3.fromRGB(34, 38, 44),
+    SliderFill        = Color3.fromRGB(88, 220, 195),
+    SliderKnob        = Color3.fromRGB(235, 240, 245)
 }
 
 local function HookCanvas(scrollFrame: ScrollingFrame)
@@ -289,17 +292,17 @@ function GUILibrary:Window()
             local label = Instance.new("TextLabel")
             label.Text = config.Name or "Section"
             label.TextColor3 = getgenv().Theme.TextSections
-            label.BackgroundTransparency = 0
+            label.BackgroundTransparency = 1
             label.BorderSizePixel = 0
-            label.BackgroundColor3 = getgenv().Theme.Sections
-            label.Font = Enum.Font.Gotham
-            label.TextSize = 14
-            label.TextXAlignment = Enum.TextXAlignment.Center
+            label.Font = Enum.Font.GothamSemibold
+            label.TextSize = 13
+            label.TextXAlignment = Enum.TextXAlignment.Left
             label.Size = UDim2.new(1, 0, 0, 18)
-            label.Position = UDim2.new(0,0,0,0)
+            label.Position = UDim2.new(0,2,0,0)
             label.Parent = wrapper
 
             local section = Instance.new("ScrollingFrame")
+            section.Name = "SectionBody"
             section.Size = UDim2.new(1, 0, 1, -22)
             section.Position = UDim2.new(0, 0, 0, 22)
             section.BackgroundColor3 = getgenv().Theme.Sections
@@ -310,14 +313,27 @@ function GUILibrary:Window()
             section.ClipsDescendants = true
             section.Parent = wrapper
 
-            local UISsection = Instance.new("UIStroke")
-            UISsection.Color = getgenv().Theme.UISSections
-            UISsection.Thickness = 1
-            UISsection.Transparency = 0.3
-            UISsection.Parent = section
+            local secCorner = Instance.new("UICorner")
+            secCorner.CornerRadius = UDim.new(0, 10)
+            secCorner.Parent = section
+
+            local secStrokeOuter = Instance.new("UIStroke")
+            secStrokeOuter.Color = getgenv().Theme.UISSections
+            secStrokeOuter.Thickness = 1.5
+            secStrokeOuter.Transparency = 0.2
+            secStrokeOuter.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            secStrokeOuter.Parent = section
+
+            local secGradient = Instance.new("UIGradient")
+            secGradient.Color = ColorSequence.new(
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(28,31,36)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(30,34,39))
+            )
+            secGradient.Rotation = 90
+            secGradient.Parent = section
 
             local UILLsection = Instance.new("UIListLayout")
-            UILLsection.Padding = UDim.new(0, 6)
+            UILLsection.Padding = UDim.new(0, 8)
             UILLsection.SortOrder = Enum.SortOrder.LayoutOrder
             UILLsection.Parent = section
 
@@ -509,6 +525,118 @@ function GUILibrary:Window()
 
                 return {
                     Set = function(_, v) setState(v, true) end,
+                    Get = function() return Section.Flags[flag] end
+                }
+            end
+
+            function Section:Slider(name, options, callback)
+                local min = tonumber(options.min) or 0
+                local max = tonumber(options.max) or 100
+                local step = tonumber(options.step) or 1
+                local default = tonumber(options.default) or min
+                local flag = options.flag or name
+                callback = callback or function() end
+
+                if max < min then max, min = min, max end
+                default = math.clamp(default, min, max)
+
+                Section.Flags[flag] = default
+
+                local Slider = Instance.new("Frame")
+                Slider.Name = "Slider"
+                Slider.BackgroundTransparency = 1
+                Slider.Size = UDim2.new(1, 0, 0, 50)
+                Slider.Parent = section
+
+                local Title = Instance.new("TextLabel")
+                Title.Name = "Title"
+                Title.Text = string.format("%s: %s", name, tostring(default))
+                Title.Font = Enum.Font.GothamBold
+                Title.TextSize = 12
+                Title.TextColor3 = getgenv().Theme.Text
+                Title.TextXAlignment = Enum.TextXAlignment.Left
+                Title.BackgroundTransparency = 1
+                Title.Size = UDim2.new(1, 0, 0, 16)
+                Title.Parent = Slider
+
+                local Track = Instance.new("Frame")
+                Track.Name = "Track"
+                Track.Size = UDim2.new(1, 0, 0, 8)
+                Track.Position = UDim2.new(0, 0, 0, 26)
+                Track.BackgroundColor3 = getgenv().Theme.SliderTrack
+                Track.BorderSizePixel = 0
+                Track.Parent = Slider
+                local tCorner = Instance.new("UICorner"); tCorner.CornerRadius = UDim.new(1,0); tCorner.Parent = Track
+                local tStroke = Instance.new("UIStroke")
+                tStroke.Color = Color3.fromRGB(45, 50, 58)
+                tStroke.Transparency = 0.35
+                tStroke.Parent = Track
+
+                local Fill = Instance.new("Frame")
+                Fill.Name = "Fill"
+                Fill.Size = UDim2.new(0, 0, 1, 0)
+                Fill.BackgroundColor3 = getgenv().Theme.SliderFill
+                Fill.BorderSizePixel = 0
+                Fill.Parent = Track
+                local fCorner = Instance.new("UICorner"); fCorner.CornerRadius = UDim.new(1,0); fCorner.Parent = Fill
+
+                local Knob = Instance.new("Frame")
+                Knob.Name = "Knob"
+                Knob.Size = UDim2.new(0, 12, 0, 12)
+                Knob.Position = UDim2.new(0, 0, 0.5, -6)
+                Knob.BackgroundColor3 = getgenv().Theme.SliderKnob
+                Knob.BorderSizePixel = 0
+                Knob.Parent = Track
+                local kCorner = Instance.new("UICorner"); kCorner.CornerRadius = UDim.new(1,0); kCorner.Parent = Knob
+                local kStroke = Instance.new("UIStroke"); kStroke.Color = Color3.fromRGB(120,130,140); kStroke.Transparency = 0.25; kStroke.Parent = Knob
+
+                local dragging = false
+
+                local function setVisual(val, fire)
+                    val = math.clamp(val, min, max)
+                    local alpha = (val - min) / (max - min)
+                    Fill.Size = UDim2.new(alpha, 0, 1, 0)
+                    Knob.Position = UDim2.new(alpha, -6, 0.5, -6)
+                    Title.Text = string.format("%s: %s", name, tostring(val))
+                    Section.Flags[flag] = val
+                    if fire ~= false then task.spawn(function() callback(val) end) end
+                end
+
+                local function pxToVal(x)
+                    local absX = Track.AbsolutePosition.X
+                    local w = Track.AbsoluteSize.X
+                    local alpha = math.clamp((x - absX) / math.max(w,1), 0, 1)
+                    local raw = min + alpha * (max - min)
+                    local stepped = (math.floor((raw - min) / step + 0.5) * step) + min
+                    return math.clamp(stepped, min, max)
+                end
+
+                Track.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        setVisual(pxToVal(input.Position.X), true)
+                    end
+                end)
+                Knob.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                    end
+                end)
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        setVisual(pxToVal(input.Position.X), true)
+                    end
+                end)
+
+                setVisual(default, false)
+
+                return {
+                    Set = function(_, v) setVisual(tonumber(v) or default, true) end,
                     Get = function() return Section.Flags[flag] end
                 }
             end
