@@ -231,18 +231,6 @@ function UI:Window(opts)
     TitleText.ZIndex = 32
     TitleText.Parent = TitleBar
 
-    local SubTitle = Instance.new("TextLabel")
-    SubTitle.Text = opts.subtitle or "polished"
-    SubTitle.Size = UDim2.new(0.3, 0, 1, 0)
-    SubTitle.Position = UDim2.new(0.64, 0, 0, 0)
-    SubTitle.Font = Enum.Font.Gotham
-    SubTitle.TextSize = 12
-    SubTitle.TextXAlignment = Enum.TextXAlignment.Right
-    SubTitle.TextColor3 = Theme.SubText
-    SubTitle.BackgroundTransparency = 1
-    SubTitle.ZIndex = 32
-    SubTitle.Parent = TitleBar
-
     local AccentLine = Instance.new("Frame")
     AccentLine.Name = "AccentLine"
     AccentLine.Position = UDim2.new(0.03, 0, 0, 46)
@@ -470,7 +458,8 @@ function UI:Window(opts)
     TabHolder.Size = UDim2.new(0.2, 0, 1, -72)
     TabHolder.BackgroundTransparency = 1
     TabHolder.BorderSizePixel = 0
-    TabHolder.ScrollBarThickness = 2
+    TabHolder.ScrollBarThickness = 0
+    TabHolder.ScrollBarImageTransparency = 1
     TabHolder.ClipsDescendants = true
     TabHolder.ZIndex = 20
     TabHolder.Parent = Main
@@ -649,7 +638,8 @@ function UI:Window(opts)
             section.BorderSizePixel = 0
             section.AutomaticCanvasSize = Enum.AutomaticSize.Y
             section.CanvasSize = UDim2.new()
-            section.ScrollBarThickness = 3
+            section.ScrollBarThickness = 0
+            section.ScrollBarImageTransparency = 1
             section.ClipsDescendants = true
             section.ZIndex = 20
             section.Parent = wrapper
@@ -689,16 +679,17 @@ function UI:Window(opts)
             Section.Frame = section
 
             function Section:Dropdown(name, options, callback)
-                options = options or {} -- FIX
-                local items = options.items or {}
+                options = options or {}
+                local items   = options.items or {}
                 local default = options.default or items[1]
-                local flag = options.flag or name
+                local flag    = options.flag or name
                 callback = callback or function() end
-                Section.Flags[flag] = default
+                Section.Flags[flag] = default    
 
                 local Dropdown = Instance.new("Frame")
                 Dropdown.BackgroundTransparency = 1
-                Dropdown.Size = UDim2.new(1, 0, 0, 56)
+                local BASE_H = 56
+                Dropdown.Size = UDim2.new(1, 0, 0, BASE_H)
                 Dropdown.ZIndex = 20
                 Dropdown.Parent = section
 
@@ -714,7 +705,7 @@ function UI:Window(opts)
                 Title.Parent = Dropdown
 
                 local Holder = Instance.new("TextButton")
-                Holder.Text = default and tostring(default) or "Select"
+                Holder.Text = (default and tostring(default)) or "Select"
                 Holder.Size = UDim2.new(1, 0, 0, 26)
                 Holder.Position = UDim2.new(0, 0, 0, 18)
                 Holder.BackgroundColor3 = Theme.Accent
@@ -738,23 +729,37 @@ function UI:Window(opts)
                 ListFrame.Visible = false
                 ListFrame.ClipsDescendants = true
                 ListFrame.ZIndex = 99
-                ListFrame.ScrollBarThickness = 3
                 ListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+                ListFrame.ScrollBarThickness = 0
+                ListFrame.ScrollBarImageTransparency = 1
                 ListFrame.Parent = Dropdown
                 local lfC = Instance.new("UICorner"); lfC.CornerRadius = UDim.new(0, 10); lfC.Parent = ListFrame
-                local ls = Instance.new("UIStroke"); ls.Color = Color3.fromRGB(45,50,58); ls.Transparency = 0.4; ls.Parent = ListFrame
+                local ls  = Instance.new("UIStroke"); ls.Color = Color3.fromRGB(45,50,58); ls.Transparency = 0.4; ls.Parent = ListFrame
 
                 local UIList = Instance.new("UIListLayout")
                 UIList.Padding = UDim.new(0, 4)
                 UIList.SortOrder = Enum.SortOrder.LayoutOrder
                 UIList.Parent = ListFrame
+
+                UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    if ListFrame.Visible then
+                        local h = math.clamp(UIList.AbsoluteContentSize.Y + 8, 0, 160)
+                        ListFrame.Size = UDim2.new(1,0,0,h)
+                        Dropdown.Size  = UDim2.new(1,0,0,BASE_H + h)
+                    end
+                end)
+            
                 local UIPad = Instance.new("UIPadding")
                 UIPad.PaddingTop = UDim.new(0, 4)
                 UIPad.PaddingBottom = UDim.new(0, 4)
                 UIPad.PaddingLeft = UDim.new(0, 4)
                 UIPad.PaddingRight = UDim.new(0, 4)
                 UIPad.Parent = ListFrame
-
+            
+                local function listHeight()
+                    return math.clamp(UIList.AbsoluteContentSize.Y + 8, 0, 160)
+                end
+            
                 for _, v in ipairs(items) do
                     local Option = Instance.new("TextButton")
                     Option.Text = tostring(v)
@@ -767,32 +772,38 @@ function UI:Window(opts)
                     Option.ZIndex = 100
                     Option.Parent = ListFrame
                     HoverState(Option, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)}, nil)
-
+            
                     Option.MouseButton1Click:Connect(function()
-                        Holder.Text = tostring(v) -- FIX
+                        Holder.Text = tostring(v)
                         Section.Flags[flag] = v
                         if ListFrame.Visible then
                             TweenService:Create(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0,0)}):Play()
+                            TweenService:Create(Dropdown,  TWEEN_FAST, {Size = UDim2.new(1,0,0,BASE_H)}):Play()
                             task.delay(0.15, function() ListFrame.Visible = false end)
                         end
                         task.spawn(callback, v)
                     end)
                 end
-
+            
                 local function openClose()
                     if not ListFrame.Visible then
                         ListFrame.Visible = true
-                        local height = UIList.AbsoluteContentSize.Y + 8
-                        TweenService:Create(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0, math.clamp(height, 0, 160))}):Play()
+                        local h = listHeight()
+                        TweenService:Create(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0,h)}):Play()
+                        TweenService:Create(Dropdown,  TWEEN_FAST, {Size = UDim2.new(1,0,0,BASE_H + h)}):Play()
                     else
                         TweenService:Create(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0,0)}):Play()
+                        TweenService:Create(Dropdown,  TWEEN_FAST, {Size = UDim2.new(1,0,0,BASE_H)}):Play()
                         task.delay(0.15, function() ListFrame.Visible = false end)
                     end
                 end
                 Holder.MouseButton1Click:Connect(openClose)
-
+            
                 return {
-                    Set = function(_, val) Holder.Text = tostring(val); Section.Flags[flag] = val end, -- FIX
+                    Set = function(_, val)
+                        Holder.Text = tostring(val)
+                        Section.Flags[flag] = val
+                    end,
                     Get = function() return Section.Flags[flag] end
                 }
             end
