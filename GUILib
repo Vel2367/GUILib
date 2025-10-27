@@ -139,17 +139,21 @@ end
 function UI:Window(opts)
     opts = opts or {}
     local Theme = useTheme(opts.theme)
-    local hideKeyDefault = opts.hideKey or Enum.KeyCode.P
-    Window.HideKey = hideKeyDefault
-    Window._isRebinding = false
-    Window._settingsOpen = false
 
     do
         local old = CoreGui:FindFirstChild("ScriptGui")
         if old then old:Destroy() end
     end
 
-    local Window = { Tabs = {}, ActiveTab = nil, Visible = true, _connections = {} }
+    local Window = {
+        Tabs = {},
+        ActiveTab = nil,
+        Visible = true,
+        _connections = {},
+        HideKey = opts.hideKey or Enum.KeyCode.P,
+        _isRebinding = false,                     
+        _settingsOpen = false,                    
+    }
 
     local ScriptGui = Instance.new("ScreenGui")
     ScriptGui.Name = "ScriptGui"
@@ -296,7 +300,7 @@ function UI:Window(opts)
             }
             return map[kc.Name] or kc.Name
         end
-    
+
         local Overlay = Instance.new("Frame")
         Overlay.Name = "SettingsOverlay"
         Overlay.ZIndex = 1000
@@ -305,12 +309,12 @@ function UI:Window(opts)
         Overlay.BackgroundTransparency = 1
         Overlay.Visible = false
         Overlay.Parent = ScriptGui
-    
+
         local Modal = Instance.new("Frame")
         Modal.Name = "SettingsModal"
         Modal.AnchorPoint = Vector2.new(0.5, 0.5)
         Modal.Position = UDim2.new(0.5, 0, 0.5, 0)
-        Modal.Size = UDim2.new(0, 420, 0, 210) -- «чуть меньше»
+        Modal.Size = UDim2.new(0, 420, 0, 210)
         Modal.BackgroundColor3 = Theme.Background
         Modal.BorderSizePixel = 0
         Modal.BackgroundTransparency = 0
@@ -319,11 +323,11 @@ function UI:Window(opts)
         local mC = Instance.new("UICorner"); mC.CornerRadius = UDim.new(0, 12); mC.Parent = Modal
         local mS = Instance.new("UIStroke"); mS.Color = Color3.fromRGB(45,50,58); mS.Transparency = 0.5; mS.Parent = Modal
         local mG = Instance.new("UIGradient"); mG.Color = Theme.BackgroundMain; mG.Rotation = 35; mG.Parent = Modal
-    
+
         local Head = Instance.new("Frame"); Head.Size = UDim2.new(1, 0, 0, 42); Head.BackgroundColor3 = Theme.TitleBar
         Head.BorderSizePixel = 0; Head.ZIndex = 1011; Head.Parent = Modal
         local hC = Instance.new("UICorner"); hC.CornerRadius = UDim.new(0, 12); hC.Parent = Head
-    
+
         local Title = Instance.new("TextLabel")
         Title.BackgroundTransparency = 1
         Title.Text = "Settings"
@@ -335,7 +339,7 @@ function UI:Window(opts)
         Title.Position = UDim2.new(0, 14, 0, 0)
         Title.ZIndex = 1012
         Title.Parent = Head
-    
+
         local Close = Instance.new("TextButton")
         Close.Text = "✕"
         Close.Font = Enum.Font.GothamBold
@@ -350,19 +354,19 @@ function UI:Window(opts)
         Close.Parent = Head
         local cC = Instance.new("UICorner"); cC.CornerRadius = UDim.new(0,8); cC.Parent = Close
         HoverState(Close, {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)}, nil)
-    
+
         local Body = Instance.new("Frame")
         Body.BackgroundTransparency = 1
         Body.ZIndex = 1011
         Body.Position = UDim2.new(0, 14, 0, 52)
         Body.Size = UDim2.new(1, -28, 1, -66)
         Body.Parent = Modal
-    
+
         local Row = Instance.new("Frame")
         Row.BackgroundTransparency = 1
         Row.Size = UDim2.new(1, 0, 0, 54)
         Row.Parent = Body
-    
+
         local RowTitle = Instance.new("TextLabel")
         RowTitle.BackgroundTransparency = 1
         RowTitle.Text = "Toggle UI Hotkey"
@@ -374,7 +378,7 @@ function UI:Window(opts)
         RowTitle.Size = UDim2.new(1, -140, 0, 18)
         RowTitle.ZIndex = 1011
         RowTitle.Parent = Row
-    
+
         local Hint = Instance.new("TextLabel")
         Hint.BackgroundTransparency = 1
         Hint.Text = "Click to rebind. Press ESC to cancel."
@@ -386,9 +390,9 @@ function UI:Window(opts)
         Hint.Size = UDim2.new(1, -140, 0, 18)
         Hint.ZIndex = 1011
         Hint.Parent = Row
-    
+
         local BindButton = Instance.new("TextButton")
-        BindButton.Text = KeyLabel(Window.HideKey)
+        BindButton.Text = KeyLabel(Window.HideKey) -- Window уже существует
         BindButton.Font = Enum.Font.GothamBold
         BindButton.TextSize = 12
         BindButton.TextColor3 = Theme.SettingButtonText
@@ -401,7 +405,7 @@ function UI:Window(opts)
         BindButton.Parent = Row
         local bbC = Instance.new("UICorner"); bbC.CornerRadius = UDim.new(0,8); bbC.Parent = BindButton
         HoverState(BindButton, {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)}, nil)
-    
+
         local function openModal()
             if Overlay.Visible then return end
             Overlay.Visible = true
@@ -412,7 +416,7 @@ function UI:Window(opts)
             TweenService:Create(Overlay, TWEEN_MEDIUM, {BackgroundTransparency = 0.35}):Play()
             TweenService:Create(Modal,   TWEEN_MEDIUM, {Position = UDim2.new(0.5,0,0.5,0), BackgroundTransparency = 0}):Play()
         end
-    
+
         local function closeModal()
             if not Overlay.Visible then return end
             Window._settingsOpen = false
@@ -420,7 +424,7 @@ function UI:Window(opts)
             TweenService:Create(Modal,   TWEEN_FAST, {Position = UDim2.new(0.5,0,0.5,8), BackgroundTransparency = 0.1}):Play()
             task.delay(0.15, function() Overlay.Visible = false end)
         end
-    
+
         Overlay.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local mpos = UserInputService:GetMouseLocation()
@@ -431,7 +435,7 @@ function UI:Window(opts)
             end
         end)
         Close.MouseButton1Click:Connect(closeModal)
-    
+
         BindButton.MouseButton1Click:Connect(function()
             if Window._isRebinding then return end
             Window._isRebinding = true
@@ -454,7 +458,7 @@ function UI:Window(opts)
             end)
             table.insert(Window._connections, conn)
         end)
-    
+
         SettingsButton.MouseButton1Click:Connect(function()
             if Overlay.Visible then closeModal() else openModal() end
         end)
@@ -685,6 +689,7 @@ function UI:Window(opts)
             Section.Frame = section
 
             function Section:Dropdown(name, options, callback)
+                options = options or {} -- FIX
                 local items = options.items or {}
                 local default = options.default or items[1]
                 local flag = options.flag or name
@@ -709,7 +714,7 @@ function UI:Window(opts)
                 Title.Parent = Dropdown
 
                 local Holder = Instance.new("TextButton")
-                Holder.Text = default or "Select"
+                Holder.Text = default and tostring(default) or "Select"
                 Holder.Size = UDim2.new(1, 0, 0, 26)
                 Holder.Position = UDim2.new(0, 0, 0, 18)
                 Holder.BackgroundColor3 = Theme.Accent
@@ -732,7 +737,7 @@ function UI:Window(opts)
                 ListFrame.Size = UDim2.new(1, 0, 0, 0)
                 ListFrame.Visible = false
                 ListFrame.ClipsDescendants = true
-                ListFrame.ZIndex = 99 -- поверх всего
+                ListFrame.ZIndex = 99
                 ListFrame.ScrollBarThickness = 3
                 ListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
                 ListFrame.Parent = Dropdown
@@ -764,7 +769,7 @@ function UI:Window(opts)
                     HoverState(Option, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)}, nil)
 
                     Option.MouseButton1Click:Connect(function()
-                        Holder.Text = v
+                        Holder.Text = tostring(v) -- FIX
                         Section.Flags[flag] = v
                         if ListFrame.Visible then
                             TweenService:Create(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0,0)}):Play()
@@ -787,12 +792,13 @@ function UI:Window(opts)
                 Holder.MouseButton1Click:Connect(openClose)
 
                 return {
-                    Set = function(_, val) Holder.Text = val; Section.Flags[flag] = val end,
+                    Set = function(_, val) Holder.Text = tostring(val); Section.Flags[flag] = val end, -- FIX
                     Get = function() return Section.Flags[flag] end
                 }
             end
 
             function Section:Toggle(name, options, callback)
+                options = options or {} -- FIX
                 local default = (options.default ~= nil) and options.default or false
                 local flag = options.flag or name
                 local state = (options.state ~= nil) and options.state or default
@@ -832,7 +838,7 @@ function UI:Window(opts)
                 local kS = Instance.new("UIStroke"); kS.Color = Color3.fromRGB(120,130,140); kS.Transparency = 0.3; kS.Parent = knob
 
                 local Text = Instance.new("TextButton")
-                Text.Active = false
+                Text.AutoButtonColor = false
                 Text.BackgroundTransparency = 1
                 Text.Size = UDim2.new(1, -70, 1, 0)
                 Text.Font = Enum.Font.GothamBold
@@ -863,6 +869,7 @@ function UI:Window(opts)
             end
 
             function Section:Slider(name, options, callback)
+                options = options or {} -- FIX
                 local min = tonumber(options.min) or 0
                 local max = tonumber(options.max) or 100
                 local step = tonumber(options.step) or 1
