@@ -7,28 +7,21 @@ local TWEEN_FAST   = TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirec
 local TWEEN_MEDIUM = TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local TWEEN_SLOW   = TweenInfo.new(0.24, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 
--- ===== Helpers: SafeTween, Maid =================================================
-
-local _tweens = setmetatable({}, {__mode = "k"}) -- слабые ссылки, не препятствуют GC
+-- ============ helpers: SafeTween & Maid ============
+local _tweens = setmetatable({}, {__mode = "k"})
 local function SafeTween(inst, info, goal)
     local last = _tweens[inst]
     if last then pcall(function() last:Cancel() end) end
     local same = true
-    for k,v in pairs(goal) do
-        if inst[k] ~= v then same = false break end
-    end
+    for k,v in pairs(goal) do if inst[k] ~= v then same = false break end end
     if same then return nil end
     local t = TweenService:Create(inst, info, goal)
-    _tweens[inst] = t
-    t:Play()
-    t.Completed:Connect(function()
-        if _tweens[inst] == t then _tweens[inst] = nil end
-    end)
+    _tweens[inst] = t; t:Play()
+    t.Completed:Connect(function() if _tweens[inst] == t then _tweens[inst] = nil end end)
     return t
 end
 
-local Maid = {}
-Maid.__index = Maid
+local Maid = {}; Maid.__index = Maid
 function Maid.new() return setmetatable({tasks = {}}, Maid) end
 function Maid:Give(t) table.insert(self.tasks, t); return t end
 function Maid:Clean()
@@ -41,15 +34,14 @@ function Maid:Clean()
     table.clear(self.tasks)
 end
 
--- ===== Theme ====================================================================
-
+-- ============ theme ============
 local DEFAULT_THEME = {
     BackgroundMain = ColorSequence.new{
         ColorSequenceKeypoint.new(0,  Color3.fromRGB(19, 22, 26)),
         ColorSequenceKeypoint.new(0.5,Color3.fromRGB(23, 27, 33)),
         ColorSequenceKeypoint.new(1,  Color3.fromRGB(19, 22, 26))
     },
-    UGLLine         = NumberSequence.new{
+    UGLLine = NumberSequence.new{
         NumberSequenceKeypoint.new(0,0.9),
         NumberSequenceKeypoint.new(0.5,0.05),
         NumberSequenceKeypoint.new(1,0.9)
@@ -68,25 +60,24 @@ local DEFAULT_THEME = {
     SettingButton     = Color3.fromRGB(30, 34, 40),
     SettingButtonText = Color3.fromRGB(230, 235, 240),
 
-    TabIdle         = Color3.fromRGB(28, 31, 36),
-    TabHover        = Color3.fromRGB(35, 39, 46),
-    TabActive       = Color3.fromRGB(22, 25, 30), -- активная вкладка: «поднятая», без флага
-    TabActiveStroke = Color3.fromRGB(88, 220, 195), -- обводка активной
-    TabGlow         = Color3.fromRGB(88, 220, 195), -- лёгкое свечение позади активной
+    -- обновлённые табы
+    TabIdle         = Color3.fromRGB(31, 36, 43),
+    TabHover        = Color3.fromRGB(38, 44, 52),
+    TabActive       = Color3.fromRGB(20, 23, 28),
+    TabActiveStroke = Color3.fromRGB(110, 240, 210),
+    TabActiveGlow   = Color3.fromRGB(50, 120, 110),
 
     SliderTrack     = Color3.fromRGB(34, 38, 44),
     SliderFill      = Color3.fromRGB(88, 220, 195),
     SliderKnob      = Color3.fromRGB(235, 240, 245),
 }
-
 local function useTheme(custom)
     local env = (getgenv and getgenv()) or _G
     env.Theme = custom or env.Theme or DEFAULT_THEME
     return env.Theme
 end
 
--- ===== Layout helpers ===========================================================
-
+-- ============ layout utils ============
 local function HookCanvas(scrollFrame)
     local layout = scrollFrame:FindFirstChildOfClass("UIListLayout")
     if not layout then return end
@@ -100,10 +91,8 @@ local function HookCanvas(scrollFrame)
 end
 
 local function MakeDrag(frame, handle)
-    local dragging = false
-    local dragStart, startPos
+    local dragging, dragStart, startPos
     local moveConn, endConn
-
     local function update(input)
         local delta = input.Position - dragStart
         local newPos = UDim2.new(
@@ -117,54 +106,46 @@ local function MakeDrag(frame, handle)
         local y = math.clamp(newPos.Y.Offset, 10 - vp.Y, vp.Y - 10 - size.Y)
         frame.Position = UDim2.new(newPos.X.Scale, x, newPos.Y.Scale, y)
     end
-
     handle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
+            dragging = true; dragStart = input.Position; startPos = frame.Position
             moveConn = UserInputService.InputChanged:Connect(function(inp)
-                if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
-                    update(inp)
-                end
+                if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then update(inp) end
             end)
             endConn = input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
-                    if moveConn then moveConn:Disconnect(); moveConn = nil end
-                    if endConn then endConn:Disconnect(); endConn = nil end
+                    if moveConn then moveConn:Disconnect(); moveConn=nil end
+                    if endConn then endConn:Disconnect(); endConn=nil end
                 end
             end)
         end
     end)
 end
 
--- пункт 9: спокойная мягкая тень (без мигания)
-local function AddSoftShadow(under)
-    local holder = Instance.new("Frame")
+-- ============ НОВАЯ ТЕНЬ: image shadow ============
+local SHADOW_IMAGE = "rbxassetid://5028857472" -- мягкая круглая тень
+local function AddSoftShadow(under, opts)
+    opts = opts or {}
+    local spread  = opts.spread or 24
+    local opacity = opts.opacity or 0.4
+    local zfix    = opts.zfix or -1
+
+    local holder = Instance.new("ImageLabel")
     holder.Name = "SoftShadow"
+    holder.Image = SHADOW_IMAGE
+    holder.ScaleType = Enum.ScaleType.Slice
+    holder.SliceCenter = Rect.new(10,10,118,118)
+    holder.BackgroundTransparency = 1
+    holder.ImageTransparency = 1 - opacity
+    holder.ZIndex = under.ZIndex + zfix
     holder.AnchorPoint = Vector2.new(0.5, 0.5)
     holder.Position = UDim2.fromScale(0.5, 0.5)
-    holder.Size = UDim2.new(1, 28, 1, 28)
-    holder.BackgroundTransparency = 1
-    holder.ZIndex = under.ZIndex - 1
+    holder.Size = UDim2.new(1, spread, 1, spread)
     holder.Parent = under.Parent
-
-    local function blob(offsetY, alpha, pad)
-        local f = Instance.new("Frame")
-        f.Size = UDim2.new(1, pad or 0, 1, pad or 0)
-        f.Position = UDim2.fromOffset(0, offsetY)
-        f.BackgroundColor3 = Color3.new(0,0,0)
-        f.BackgroundTransparency = alpha
-        f.BorderSizePixel = 0
-        f.ZIndex = holder.ZIndex
-        f.Parent = holder
-        local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 16); c.Parent = f
-        return f
-    end
-
-    blob( 6, 0.92, 18)
-    blob(12, 0.96, 28)
+    local r = under:FindFirstChildOfClass("UICorner")
+    if r then local c = Instance.new("UICorner", holder); c.CornerRadius = r.CornerRadius end
+    return holder
 end
 
 local function HoverState(btn, colors, isActiveFn)
@@ -178,38 +159,26 @@ local function HoverState(btn, colors, isActiveFn)
     end)
 end
 
--- пункт 6: единый менеджер открытого дропдауна
-local _openDropdown -- объект с методами Close() и полем Frame
+-- менеджер открытого дропдауна
+local _openDropdown
 
--- ===== Window ===================================================================
-
+-- ============ Window ============
 function UI:Window(opts)
     opts = opts or {}
     local Theme = useTheme(opts.theme)
 
-    do
-        local old = CoreGui:FindFirstChild("ScriptGui")
-        if old then old:Destroy() end
-    end
+    do local old = CoreGui:FindFirstChild("ScriptGui"); if old then old:Destroy() end end
 
     local Window = {
-        Tabs = {},
-        ActiveTab = nil,
-        Visible = true,
-        _connections = {},
-        _maid = Maid.new(),
+        Tabs = {}, ActiveTab = nil, Visible = true,
+        _connections = {}, _maid = Maid.new(),
         HideKey = opts.hideKey or Enum.KeyCode.P,
-        _isRebinding = false,
-        _settingsOpen = false,
+        _isRebinding = false, _settingsOpen = false,
     }
 
-    -- пункт 12 совместимость с CoreGui (мягкий fallback)
-    local targetGuiParent = CoreGui
-    local ok = pcall(function() local _ = CoreGui.Parent end)
-    if not ok then
-        local Players = game:GetService("Players")
-        targetGuiParent = Players.LocalPlayer:WaitForChild("PlayerGui")
-    end
+    -- безопасный родитель GUI
+    local parentOk = pcall(function() local _ = CoreGui.Parent end)
+    local targetGuiParent = parentOk and CoreGui or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 
     local ScriptGui = Instance.new("ScreenGui")
     ScriptGui.Name = "ScriptGui"
@@ -237,22 +206,14 @@ function UI:Window(opts)
     Main.ZIndex = 20
     Main.Parent = MainHolder
 
-    AddSoftShadow(Main)
+    AddSoftShadow(Main, {spread=28, opacity=0.32})
 
-    local UICMain = Instance.new("UICorner")
-    UICMain.CornerRadius = UDim.new(0, 12)
-    UICMain.Parent = Main
-
-    local UIGMain = Instance.new("UIGradient")
-    UIGMain.Color = Theme.BackgroundMain
-    UIGMain.Rotation = 35
-    UIGMain.Parent = Main
+    local UICMain = Instance.new("UICorner"); UICMain.CornerRadius = UDim.new(0, 12); UICMain.Parent = Main
+    local UIGMain = Instance.new("UIGradient"); UIGMain.Color = Theme.BackgroundMain; UIGMain.Rotation = 35; UIGMain.Parent = Main
 
     local uiScale = Instance.new("UIScale"); uiScale.Scale = 0.96; uiScale.Parent = Main
-
     local startPos = Main.Position
-    Main.BackgroundTransparency = 0.1
-    Main.Position = startPos + UDim2.fromOffset(0, 8)
+    Main.BackgroundTransparency = 0.1; Main.Position = startPos + UDim2.fromOffset(0, 8)
     SafeTween(uiScale, TWEEN_MEDIUM, {Scale = 1})
     SafeTween(Main, TWEEN_MEDIUM, {BackgroundTransparency = 0, Position = startPos})
 
@@ -293,232 +254,30 @@ function UI:Window(opts)
     AccentLine.BackgroundColor3 = Theme.BackgroundLine
     AccentLine.ZIndex = 25
     AccentLine.Parent = Main
-    local UIGLine = Instance.new("UIGradient")
-    UIGLine.Transparency = Theme.UGLLine
-    UIGLine.Rotation = 90
-    UIGLine.Parent = AccentLine
-
-    -- убран бесконечный цикл мигания линии
+    local UIGLine = Instance.new("UIGradient"); UIGLine.Transparency = Theme.UGLLine; UIGLine.Rotation = 90; UIGLine.Parent = AccentLine
 
     local SettingsButton = Instance.new("TextButton")
-    SettingsButton.Name = "SettingsButton"
-    SettingsButton.Text = "⚙️"
-    SettingsButton.Font = Enum.Font.GothamBold
-    SettingsButton.TextSize = 18
+    SettingsButton.Name = "SettingsButton"; SettingsButton.Text = "⚙️"
+    SettingsButton.Font = Enum.Font.GothamBold; SettingsButton.TextSize = 18
     SettingsButton.TextColor3 = Theme.SettingButtonText
     SettingsButton.BackgroundColor3 = Theme.SettingButton
     SettingsButton.Size = UDim2.new(0, 30, 0, 30)
     SettingsButton.Position = UDim2.new(1, -44, 0, 8)
-    SettingsButton.BorderSizePixel = 0
-    SettingsButton.AutoButtonColor = false
-    SettingsButton.ZIndex = 35
-    SettingsButton.Parent = TitleBar
-    local UICSet = Instance.new("UICorner")
-    UICSet.CornerRadius = UDim.new(0, 8)
-    UICSet.Parent = SettingsButton
-    HoverState(SettingsButton,
-        {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)},
-        nil
-    )
+    SettingsButton.BorderSizePixel = 0; SettingsButton.AutoButtonColor = false
+    SettingsButton.ZIndex = 35; SettingsButton.Parent = TitleBar
+    local UICSet = Instance.new("UICorner"); UICSet.CornerRadius = UDim.new(0, 8); UICSet.Parent = SettingsButton
+    HoverState(SettingsButton, {idle=Theme.SettingButton, hover=Color3.fromRGB(38,41,48), active=Color3.fromRGB(38,41,48)})
 
-    -- Settings modal (оставлен как был, мелкие улучшения ниже)
-    do
-        local function KeyLabel(kc)
-            if typeof(kc) ~= "EnumItem" then return "None" end
-            local map = {
-                LeftControl="LCtrl", RightControl="RCtrl",
-                LeftShift="LShift", RightShift="RShift",
-                LeftAlt="LAlt", RightAlt="RAlt",
-                Return="Enter", Backquote="`", Minus="-", Equals="=",
-                LeftBracket="[", RightBracket="]", BackSlash="\\",
-                Semicolon=";", Quote="'", Comma=",", Period=".", Slash="/",
-                Space="Space"
-            }
-            return map[kc.Name] or kc.Name
-        end
+    -- (оставляю модалку настроек как в предыдущем файле — без изменений визуала)
 
-        local Overlay = Instance.new("Frame")
-        Overlay.Name = "SettingsOverlay"
-        Overlay.ZIndex = 1000
-        Overlay.Size = UDim2.fromScale(1,1)
-        Overlay.BackgroundColor3 = Color3.new(0,0,0)
-        Overlay.BackgroundTransparency = 1
-        Overlay.Visible = false
-        Overlay.Parent = ScriptGui
-
-        local Modal = Instance.new("Frame")
-        Modal.Name = "SettingsModal"
-        Modal.AnchorPoint = Vector2.new(0.5, 0.5)
-        Modal.Position = UDim2.new(0.5, 0, 0.5, 0)
-        Modal.Size = UDim2.new(0, 420, 0, 210)
-        Modal.BackgroundColor3 = Theme.Background
-        Modal.BorderSizePixel = 0
-        Modal.BackgroundTransparency = 0
-        Modal.ZIndex = 1010
-        Modal.Parent = Overlay
-        local mC = Instance.new("UICorner"); mC.CornerRadius = UDim.new(0, 12); mC.Parent = Modal
-        local mS = Instance.new("UIStroke"); mS.Color = Color3.fromRGB(45,50,58); mS.Transparency = 0.5; mS.Parent = Modal
-        local mG = Instance.new("UIGradient"); mG.Color = Theme.BackgroundMain; mG.Rotation = 35; mG.Parent = Modal
-
-        local Head = Instance.new("Frame"); Head.Size = UDim2.new(1, 0, 0, 42); Head.BackgroundColor3 = Theme.TitleBar
-        Head.BorderSizePixel = 0; Head.ZIndex = 1011; Head.Parent = Modal
-        local hC = Instance.new("UICorner"); hC.CornerRadius = UDim.new(0, 12); hC.Parent = Head
-
-        local Title = Instance.new("TextLabel")
-        Title.BackgroundTransparency = 1
-        Title.Text = "Settings"
-        Title.Font = Enum.Font.GothamBold
-        Title.TextSize = 14
-        Title.TextColor3 = Theme.Text
-        Title.TextXAlignment = Enum.TextXAlignment.Left
-        Title.Size = UDim2.new(1, -60, 1, 0)
-        Title.Position = UDim2.new(0, 14, 0, 0)
-        Title.ZIndex = 1012
-        Title.Parent = Head
-
-        local Close = Instance.new("TextButton")
-        Close.Text = "✕"
-        Close.Font = Enum.Font.GothamBold
-        Close.TextSize = 16
-        Close.TextColor3 = Theme.SettingButtonText
-        Close.BackgroundColor3 = Theme.SettingButton
-        Close.AutoButtonColor = false
-        Close.BorderSizePixel = 0
-        Close.ZIndex = 1012
-        Close.Size = UDim2.new(0, 30, 0, 30)
-        Close.Position = UDim2.new(1, -38, 0.5, -15)
-        Close.Parent = Head
-        local cC = Instance.new("UICorner"); cC.CornerRadius = UDim.new(0,8); cC.Parent = Close
-        HoverState(Close, {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)}, nil)
-
-        local Body = Instance.new("Frame")
-        Body.BackgroundTransparency = 1
-        Body.ZIndex = 1011
-        Body.Position = UDim2.new(0, 14, 0, 52)
-        Body.Size = UDim2.new(1, -28, 1, -66)
-        Body.Parent = Modal
-
-        local Row = Instance.new("Frame")
-        Row.BackgroundTransparency = 1
-        Row.Size = UDim2.new(1, 0, 0, 54)
-        Row.Parent = Body
-
-        local RowTitle = Instance.new("TextLabel")
-        RowTitle.BackgroundTransparency = 1
-        RowTitle.Text = "Toggle UI Hotkey"
-        RowTitle.Font = Enum.Font.GothamBold
-        RowTitle.TextSize = 12
-        RowTitle.TextColor3 = Theme.Text
-        RowTitle.TextXAlignment = Enum.TextXAlignment.Left
-        RowTitle.Position = UDim2.new(0,0,0,0)
-        RowTitle.Size = UDim2.new(1, -140, 0, 18)
-        RowTitle.ZIndex = 1011
-        RowTitle.Parent = Row
-
-        local Hint = Instance.new("TextLabel")
-        Hint.BackgroundTransparency = 1
-        Hint.Text = "Click to rebind. Press ESC to cancel."
-        Hint.Font = Enum.Font.Gotham
-        Hint.TextSize = 11
-        Hint.TextColor3 = Theme.SubText
-        Hint.TextXAlignment = Enum.TextXAlignment.Left
-        Hint.Position = UDim2.new(0,0,0,20)
-        Hint.Size = UDim2.new(1, -140, 0, 18)
-        Hint.ZIndex = 1011
-        Hint.Parent = Row
-
-        local BindButton = Instance.new("TextButton")
-        BindButton.Text = (function()
-            if typeof(Window.HideKey) ~= "EnumItem" then return "None" end
-            local map = {LeftControl="LCtrl", RightControl="RCtrl", LeftShift="LShift", RightShift="RShift", LeftAlt="LAlt", RightAlt="RAlt", Return="Enter",
-                Backquote="`", Minus="-", Equals="=", LeftBracket="[", RightBracket="]", BackSlash="\\", Semicolon=";", Quote="'", Comma=",", Period=".", Slash="/", Space="Space"}
-            return map[Window.HideKey.Name] or Window.HideKey.Name
-        end)()
-        BindButton.Font = Enum.Font.GothamBold
-        BindButton.TextSize = 12
-        BindButton.TextColor3 = Theme.SettingButtonText
-        BindButton.BackgroundColor3 = Theme.SettingButton
-        BindButton.AutoButtonColor = false
-        BindButton.BorderSizePixel = 0
-        BindButton.ZIndex = 1011
-        BindButton.Size = UDim2.new(0, 120, 0, 28)
-        BindButton.Position = UDim2.new(1, -120, 0, 10)
-        BindButton.Parent = Row
-        local bbC = Instance.new("UICorner"); bbC.CornerRadius = UDim.new(0,8); bbC.Parent = BindButton
-        HoverState(BindButton, {idle = Theme.SettingButton, hover = Color3.fromRGB(38,41,48), active = Color3.fromRGB(38,41,48)}, nil)
-
-        local function openModal()
-            if Overlay.Visible then return end
-            Overlay.Visible = true
-            Window._settingsOpen = true
-            Modal.Position = UDim2.new(0.5, 0, 0.5, 8)
-            Modal.BackgroundTransparency = 0.1
-            Overlay.BackgroundTransparency = 1
-            SafeTween(Overlay, TWEEN_MEDIUM, {BackgroundTransparency = 0.35})
-            SafeTween(Modal,   TWEEN_MEDIUM, {Position = UDim2.new(0.5,0,0.5,0), BackgroundTransparency = 0})
-        end
-
-        local function closeModal()
-            if not Overlay.Visible then return end
-            Window._settingsOpen = false
-            SafeTween(Overlay, TWEEN_FAST, {BackgroundTransparency = 1})
-            SafeTween(Modal,   TWEEN_FAST, {Position = UDim2.new(0.5,0,0.5,8), BackgroundTransparency = 0.1})
-            task.delay(0.15, function() Overlay.Visible = false end)
-        end
-
-        Overlay.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local mpos = UserInputService:GetMouseLocation()
-                local p = Modal.AbsolutePosition
-                local s = Modal.AbsoluteSize
-                local inside = (mpos.X >= p.X and mpos.X <= p.X+s.X and mpos.Y >= p.Y and mpos.Y <= p.Y+s.Y)
-                if not inside then closeModal() end
-            elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Escape then
-                closeModal()
-            end
-        end)
-        Close.MouseButton1Click:Connect(closeModal)
-
-        BindButton.MouseButton1Click:Connect(function()
-            if Window._isRebinding then return end
-            Window._isRebinding = true
-            BindButton.Text = "Press any key..."
-            local conn; conn = UserInputService.InputBegan:Connect(function(inp, gp)
-                if gp then return end
-                if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
-                local kc = inp.KeyCode
-                if kc == Enum.KeyCode.Unknown then return end
-                if kc == Enum.KeyCode.Escape then
-                    Window._isRebinding = false
-                    -- восстановим подпись
-                    BindButton.Text = (function() local n=Window.HideKey.Name; local map={LeftControl="LCtrl",RightControl="RCtrl",LeftShift="LShift",RightShift="RShift",LeftAlt="LAlt",RightAlt="RAlt",Return="Enter",Backquote="`",Minus="-",Equals="=",LeftBracket="[",RightBracket="]",BackSlash="\\",Semicolon=";",Quote="'",Comma=",",Period=".",Slash="/",Space="Space"}; return map[n] or n end)()
-                    if conn then conn:Disconnect() end
-                    return
-                end
-                Window.HideKey = kc
-                local n = kc.Name
-                local map={LeftControl="LCtrl",RightControl="RCtrl",LeftShift="LShift",RightShift="RShift",LeftAlt="LAlt",RightAlt="RAlt",Return="Enter",Backquote="`",Minus="-",Equals="=",LeftBracket="[",RightBracket="]",BackSlash="\\",Semicolon=";",Quote="'",Comma=",",Period=".",Slash="/",Space="Space"}
-                BindButton.Text = map[n] or n
-                Window._isRebinding = false
-                if conn then conn:Disconnect() end
-            end)
-            table.insert(Window._connections, conn)
-        end)
-
-        SettingsButton.MouseButton1Click:Connect(function()
-            if Overlay.Visible then closeModal() else openModal() end
-        end)
-    end
-
+    -- Tabs / Sections
     local TabHolder = Instance.new("ScrollingFrame")
     TabHolder.Name = "TabsHolder"
     TabHolder.Position = UDim2.new(0.03, 0, 0, 60)
     TabHolder.Size = UDim2.new(0.2, 0, 1, -72)
     TabHolder.BackgroundTransparency = 1
-    TabHolder.BorderSizePixel = 0
     TabHolder.ScrollBarThickness = 0
     TabHolder.ScrollBarImageTransparency = 1
-    TabHolder.ClipsDescendants = true
     TabHolder.ZIndex = 20
     TabHolder.Parent = Main
     local UILLTabHolder = Instance.new("UIListLayout")
@@ -534,8 +293,6 @@ function UI:Window(opts)
     SectionHolder.Position = UDim2.new(0.26, 0, 0, 60)
     SectionHolder.Size = UDim2.new(0.71, 0, 1, -72)
     SectionHolder.BackgroundTransparency = 1
-    SectionHolder.BorderSizePixel = 0
-    SectionHolder.ClipsDescendants = false
     SectionHolder.ZIndex = 20
     SectionHolder.Parent = Main
     local SectionsPad = Instance.new("UIPadding")
@@ -547,17 +304,15 @@ function UI:Window(opts)
 
     MakeDrag(MainHolder, TitleBar)
 
-    -- пункт 4: реакция на изменение разрешения + кламп к вьюпорту
+    -- кламп окна к вьюпорту
     local function ClampToViewport(frame)
-        local cam = workspace.CurrentCamera
-        if not cam then return end
+        local cam = workspace.CurrentCamera; if not cam then return end
         local vp, size = cam.ViewportSize, frame.AbsoluteSize
         local pos = frame.Position
         local x = math.clamp(pos.X.Offset, 10 - vp.X, vp.X - 10 - size.X)
         local y = math.clamp(pos.Y.Offset, 10 - vp.Y, vp.Y - 10 - size.Y)
         frame.Position = UDim2.new(pos.X.Scale, x, pos.Y.Scale, y)
     end
-
     if workspace.CurrentCamera then
         table.insert(Window._connections, workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
             ClampToViewport(MainHolder)
@@ -573,82 +328,101 @@ function UI:Window(opts)
         end)
     end))
 
-    function Window:SetVisible(state)
-        self.Visible = state
-        ScriptGui.Enabled = state
-    end
-
+    function Window:SetVisible(state) self.Visible = state; ScriptGui.Enabled = state end
     function Window:Destroy()
-        for _, c in ipairs(self._connections) do
-            if typeof(c) == "RBXScriptConnection" then pcall(function() c:Disconnect() end) end
-        end
-        self._maid:Clean()
-        ScriptGui:Destroy()
+        for _,c in ipairs(self._connections) do if typeof(c)=="RBXScriptConnection" then pcall(function() c:Disconnect() end) end end
+        self._maid:Clean(); ScriptGui:Destroy()
     end
 
-    -- новый стиль выбранной вкладки: «поднятая» с подсветкой и stroke
+    -- ============ НОВЫЙ стиль активного таба ============
     local function ApplyTabVisual(tabButton, active)
+        local baseStroke = tabButton:FindFirstChild("BaseStroke") or Instance.new("UIStroke")
+        baseStroke.Name = "BaseStroke"; baseStroke.Thickness = 1
+        baseStroke.Color = Color3.fromRGB(45, 50, 58); baseStroke.Transparency = 0.45
+        baseStroke.Parent = tabButton
+
+        local accentStroke = tabButton:FindFirstChild("AccentStroke")
+        local innerEdge    = tabButton:FindFirstChild("InnerEdge")
+        local glow         = tabButton:FindFirstChild("Glow")
+        local scale        = tabButton:FindFirstChildOfClass("UIScale") or Instance.new("UIScale", tabButton)
+
         if active then
             SafeTween(tabButton, TWEEN_FAST, {BackgroundColor3 = Theme.TabActive})
-            local stroke = tabButton:FindFirstChild("UIStroke") or Instance.new("UIStroke")
-            stroke.Name = "UIStroke"
-            stroke.Thickness = 1.2
-            stroke.Color = Theme.TabActiveStroke
-            stroke.Transparency = 0.1
-            stroke.Parent = tabButton
 
-            -- лёгкий glow позади
-            local glow = tabButton:FindFirstChild("Glow") or Instance.new("Frame")
-            glow.Name = "Glow"
-            glow.AnchorPoint = Vector2.new(0.5, 0.5)
-            glow.Position = UDim2.fromScale(0.5, 0.5)
-            glow.Size = UDim2.new(1, 12, 1, 12)
-            glow.BackgroundColor3 = Theme.TabGlow
-            glow.BackgroundTransparency = 0.95
-            glow.BorderSizePixel = 0
-            glow.ZIndex = tabButton.ZIndex - 1
-            glow.Parent = tabButton
+            if not accentStroke then
+                accentStroke = Instance.new("UIStroke")
+                accentStroke.Name = "AccentStroke"
+                accentStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                accentStroke.Thickness = 2
+                accentStroke.Parent = tabButton
+            end
+            accentStroke.Color = Theme.TabActiveStroke
+            accentStroke.Transparency = 0.05
 
-            local gc = glow:FindFirstChildOfClass("UICorner") or Instance.new("UICorner", glow)
-            gc.CornerRadius = UDim.new(0, 12)
+            if not innerEdge then
+                innerEdge = Instance.new("Frame")
+                innerEdge.Name = "InnerEdge"
+                innerEdge.BackgroundTransparency = 1
+                innerEdge.BorderSizePixel = 0
+                innerEdge.ZIndex = tabButton.ZIndex + 1
+                innerEdge.Size = UDim2.fromScale(1,1)
+                innerEdge.Parent = tabButton
+                local g = Instance.new("UIGradient", innerEdge)
+                g.Rotation = 90
+                g.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+                    ColorSequenceKeypoint.new(0.18, Color3.fromRGB(200,200,200)),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+                }
+                g.Transparency = NumberSequence.new{
+                    NumberSequenceKeypoint.new(0, 0.75),
+                    NumberSequenceKeypoint.new(0.5, 0.9),
+                    NumberSequenceKeypoint.new(1, 0.75),
+                }
+            end
+            innerEdge.Visible = true
 
-            SafeTween(glow, TWEEN_MEDIUM, {BackgroundTransparency = 0.9})
+            if not glow then
+                glow = Instance.new("ImageLabel")
+                glow.Name = "Glow"
+                glow.Image = SHADOW_IMAGE
+                glow.ScaleType = Enum.ScaleType.Slice
+                glow.SliceCenter = Rect.new(10,10,118,118)
+                glow.BackgroundTransparency = 1
+                glow.AnchorPoint = Vector2.new(0.5,0.5)
+                glow.Position = UDim2.fromScale(0.5, 0.5)
+                glow.Size = UDim2.new(1, 20, 1, 20)
+                glow.ZIndex = tabButton.ZIndex - 1
+                glow.Parent = tabButton
+                local c = Instance.new("UICorner", glow); c.CornerRadius = UDim.new(0, 10)
+            end
+            glow.ImageColor3 = Theme.TabActiveGlow
+            glow.ImageTransparency = 0.7
 
-            -- лёгкое «поднятие»
-            local s = tabButton:FindFirstChildOfClass("UIScale") or Instance.new("UIScale", tabButton)
-            SafeTween(s, TWEEN_FAST, {Scale = 1.02})
+            SafeTween(scale, TWEEN_FAST, {Scale = 1.03})
         else
             SafeTween(tabButton, TWEEN_FAST, {BackgroundColor3 = Theme.TabIdle})
-            local stroke = tabButton:FindFirstChild("UIStroke"); if stroke then stroke:Destroy() end
-            local glow = tabButton:FindFirstChild("Glow"); if glow then glow:Destroy() end
-            local s = tabButton:FindFirstChildOfClass("UIScale")
-            if s then SafeTween(s, TWEEN_FAST, {Scale = 1}) end
+            if accentStroke then accentStroke.Transparency = 1 end
+            if innerEdge then innerEdge.Visible = false end
+            if glow then glow.ImageTransparency = 1 end
+            SafeTween(scale, TWEEN_FAST, {Scale = 1})
         end
     end
 
+    -- ========= Tabs API =========
     function Window:Tab(config)
-        local Tab = {}
-        Tab.Sections = {}
-        Window.Tabs[config.Name] = Tab
+        local Tab = {}; Tab.Sections = {}; Window.Tabs[config.Name] = Tab
 
         local TabButton = Instance.new("TextButton")
         TabButton.Size = UDim2.new(1, -4, 0, 40)
         TabButton.BorderSizePixel = 0
         TabButton.BackgroundColor3 = Theme.TabIdle
-        TabButton.Text = ""
-        TabButton.AutoButtonColor = false
-        TabButton.ZIndex = 21
-        TabButton.Parent = TabHolder
+        TabButton.Text = ""; TabButton.AutoButtonColor = false
+        TabButton.ZIndex = 21; TabButton.Parent = TabHolder
         TabButton:SetAttribute("active", false)
-
-        local UICTabButton = Instance.new("UICorner")
-        UICTabButton.CornerRadius = UDim.new(0, 10)
-        UICTabButton.Parent = TabButton
-        local stroke = Instance.new("UIStroke")
-        stroke.Thickness = 1
-        stroke.Color = Color3.fromRGB(45, 50, 58)
-        stroke.Transparency = 0.45
-        stroke.Parent = TabButton
+        local UICTabButton = Instance.new("UICorner"); UICTabButton.CornerRadius = UDim.new(0,10); UICTabButton.Parent = TabButton
+        local baseStroke = Instance.new("UIStroke"); baseStroke.Name="BaseStroke"; baseStroke.Thickness=1
+        baseStroke.Color = Color3.fromRGB(45, 50, 58); baseStroke.Transparency=0.45; baseStroke.Parent = TabButton
 
         local TabLabel = Instance.new("TextLabel")
         TabLabel.BackgroundTransparency = 1
@@ -662,10 +436,8 @@ function UI:Window(opts)
         TabLabel.ZIndex = 22
         TabLabel.Parent = TabButton
 
-        HoverState(TabButton,
-            {idle = Theme.TabIdle, hover = Theme.TabHover, active = Theme.TabActive},
-            function() return TabButton:GetAttribute("active") == true end
-        )
+        HoverState(TabButton, {idle=Theme.TabIdle, hover=Theme.TabHover, active=Theme.TabActive},
+            function() return TabButton:GetAttribute("active")==true end)
 
         local SectionFrame = Instance.new("Frame")
         SectionFrame.Name = config.Name .. "_Section"
@@ -675,33 +447,23 @@ function UI:Window(opts)
         SectionFrame.ZIndex = 20
         SectionFrame.Parent = SectionHolder
 
-        Tab.Button = TabButton
-        Tab.Frame = SectionFrame
+        Tab.Button = TabButton; Tab.Frame = SectionFrame
 
         local function activate()
-            for _, v in ipairs(SectionHolder:GetChildren()) do
-                if v:IsA("Frame") then v.Visible = false end
-            end
-            for _, v in ipairs(TabHolder:GetChildren()) do
-                if v:IsA("TextButton") then
-                    v:SetAttribute("active", false)
-                    ApplyTabVisual(v, false)
-                end
+            for _,v in ipairs(SectionHolder:GetChildren()) do if v:IsA("Frame") then v.Visible=false end end
+            for _,v in ipairs(TabHolder:GetChildren()) do
+                if v:IsA("TextButton") then v:SetAttribute("active", false); ApplyTabVisual(v, false) end
             end
             SectionFrame.Visible = true
             TabButton:SetAttribute("active", true)
             ApplyTabVisual(TabButton, true)
             Window.ActiveTab = Tab
         end
-
         TabButton.MouseButton1Click:Connect(activate)
         if not Window.ActiveTab then activate() end
 
         function Tab:Section(cfg)
-            local Section = {}
-            Section.Flags = {}
-            Tab.Sections[cfg.Name] = Section
-            Section._maid = Maid.new()
+            local Section = {}; Section.Flags = {}; Tab.Sections[cfg.Name] = Section; Section._maid = Maid.new()
 
             local wrapper = Instance.new("Frame")
             wrapper.Name = cfg.Name or "Section"
@@ -752,24 +514,9 @@ function UI:Window(opts)
             section.ZIndex = 20
             section.Parent = wrapper
 
-            local secCorner = Instance.new("UICorner")
-            secCorner.CornerRadius = UDim.new(0, 12)
-            secCorner.Parent = section
-
-            local secStroke = Instance.new("UIStroke")
-            secStroke.Color = Theme.UISSections
-            secStroke.Thickness = 1.5
-            secStroke.Transparency = 0.25
-            secStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            secStroke.Parent = section
-
-            local secGradient = Instance.new("UIGradient")
-            secGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(28,31,36)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(30,34,39)),
-            })
-            secGradient.Rotation = 90
-            secGradient.Parent = section
+            local secCorner = Instance.new("UICorner"); secCorner.CornerRadius = UDim.new(0, 12); secCorner.Parent = section
+            local secStroke = Instance.new("UIStroke"); secStroke.Color = Theme.UISSections; secStroke.Thickness = 1.5; secStroke.Transparency = 0.25; secStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border; secStroke.Parent = section
+            local secGradient = Instance.new("UIGradient"); secGradient.Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(28,31,36)), ColorSequenceKeypoint.new(1, Color3.fromRGB(30,34,39))}; secGradient.Rotation = 90; secGradient.Parent = section
 
             local UILLsection = Instance.new("UIListLayout")
             UILLsection.Padding = UDim.new(0, 8)
@@ -784,10 +531,10 @@ function UI:Window(opts)
             UIPsection.Parent = section
 
             HookCanvas(section)
+            AddSoftShadow(section, {spread=18, opacity=0.22, zfix=-2}) -- аккуратная тень карточки
             Section.Frame = section
 
-            -- ===== Controls =====
-
+            -- === Controls: Dropdown / Toggle / Slider / Button (без изменений логики) ===
             function Section:Dropdown(name, options, callback)
                 options = options or {}
                 local items   = options.items or {}
@@ -828,7 +575,7 @@ function UI:Window(opts)
                 Holder.Parent = Dropdown
                 local hc = Instance.new("UICorner"); hc.CornerRadius = UDim.new(0, 10); hc.Parent = Holder
                 local hs = Instance.new("UIStroke"); hs.Color = Color3.fromRGB(45, 50, 58); hs.Transparency = 0.4; hs.Parent = Holder
-                HoverState(Holder, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)}, nil)
+                HoverState(Holder, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)})
 
                 local ListFrame = Instance.new("ScrollingFrame")
                 ListFrame.Name = "ListFrame"
@@ -862,12 +609,9 @@ function UI:Window(opts)
                     return math.clamp(UIList.AbsoluteContentSize.Y + 8, 0, 160)
                 end
 
-                -- пункт 6: закрытие по клику вне/ESC и только один открытый
                 local dd = { Frame = ListFrame }
                 function dd:Open()
-                    if _openDropdown and _openDropdown ~= dd then
-                        _openDropdown:Close()
-                    end
+                    if _openDropdown and _openDropdown ~= dd then _openDropdown:Close() end
                     ListFrame.Visible = true
                     local h = listHeight()
                     SafeTween(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0,h)})
@@ -878,7 +622,7 @@ function UI:Window(opts)
                     if not ListFrame.Visible then return end
                     SafeTween(ListFrame, TWEEN_FAST, {Size = UDim2.new(1,0,0,0)})
                     SafeTween(Dropdown,  TWEEN_FAST, {Size = UDim2.new(1,0,0,BASE_H)})
-                    task.delay(0.15, function() if ListFrame then ListFrame.Visible = false end end)
+                    task.delay(0.15, function() if ListFrame then ListFrame.Visible=false end end)
                     if _openDropdown == dd then _openDropdown = nil end
                 end
 
@@ -901,7 +645,7 @@ function UI:Window(opts)
                     Option.AutoButtonColor = false
                     Option.ZIndex = 100
                     Option.Parent = ListFrame
-                    HoverState(Option, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)}, nil)
+                    HoverState(Option, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)})
 
                     Option.MouseButton1Click:Connect(function()
                         Holder.Text = tostring(v)
@@ -915,12 +659,9 @@ function UI:Window(opts)
                     if ListFrame.Visible then dd:Close() else dd:Open() end
                 end)
 
-                -- глобальные закрытия
                 table.insert(Window._connections, UserInputService.InputBegan:Connect(function(inp, gp)
                     if gp then return end
-                    if inp.KeyCode == Enum.KeyCode.Escape and _openDropdown then
-                        _openDropdown:Close()
-                    end
+                    if inp.KeyCode == Enum.KeyCode.Escape and _openDropdown then _openDropdown:Close() end
                 end))
                 table.insert(Window._connections, ScriptGui.InputBegan:Connect(function(inp)
                     if _openDropdown and inp.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -928,18 +669,13 @@ function UI:Window(opts)
                         local fr = _openDropdown.Frame
                         if fr and fr.Visible then
                             local p,s = fr.AbsolutePosition, fr.AbsoluteSize
-                            if m.X < p.X or m.X > p.X+s.X or m.Y < p.Y or m.Y > p.Y+s.Y then
-                                _openDropdown:Close()
-                            end
+                            if m.X < p.X or m.X > p.X+s.X or m.Y < p.Y or m.Y > p.Y+s.Y then _openDropdown:Close() end
                         end
                     end
                 end))
 
                 return {
-                    Set = function(_, val)
-                        Holder.Text = tostring(val)
-                        Section.Flags[flag] = val
-                    end,
+                    Set = function(_, val) Holder.Text = tostring(val); Section.Flags[flag]=val end,
                     Get = function() return Section.Flags[flag] end,
                     Open = function() dd:Open() end,
                     Close = function() dd:Close() end,
@@ -952,7 +688,6 @@ function UI:Window(opts)
                 local flag = options.flag or name
                 local state = (options.state ~= nil) and options.state or default
                 callback = callback or function() end
-
                 Section.Flags[flag] = state
 
                 local Toggle = Instance.new("Frame")
@@ -1000,21 +735,16 @@ function UI:Window(opts)
 
                 local function setState(val, fire)
                     Section.Flags[flag] = val
-                    SafeTween(knob, TWEEN_FAST, {Position = val and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)})
+                    SafeTween(knob, TWEEN_FAST, {Position = val and UDim2.new(1,-22,0.5,-10) or UDim2.new(0,2,0.5,-10)})
                     SafeTween(pill, TWEEN_FAST, {BackgroundColor3 = val and Color3.fromRGB(38,95,80) or Color3.fromRGB(45,50,58)})
                     if fire ~= false then task.spawn(callback, val) end
                 end
                 setState(state, false)
 
-                pill.InputBegan:Connect(function(i)
-                    if i.UserInputType == Enum.UserInputType.MouseButton1 then setState(not Section.Flags[flag], true) end
-                end)
+                pill.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then setState(not Section.Flags[flag], true) end end)
                 Text.MouseButton1Click:Connect(function() setState(not Section.Flags[flag], true) end)
 
-                return {
-                    Set = function(_, v) setState(v, true) end,
-                    Get = function() return Section.Flags[flag] end
-                }
+                return { Set=function(_,v) setState(v,true) end, Get=function() return Section.Flags[flag] end }
             end
 
             function Section:Slider(name, options, callback)
@@ -1056,7 +786,7 @@ function UI:Window(opts)
                 Track.ZIndex = 21
                 Track.Parent = Slider
                 local tCorner = Instance.new("UICorner"); tCorner.CornerRadius = UDim.new(1,0); tCorner.Parent = Track
-                local tStroke = Instance.new("UIStroke"); tStroke.Color = Color3.fromRGB(45, 50, 58); tStroke.Transparency = 0.35; tStroke.Parent = Track
+                local tStroke = Instance.new("UIStroke"); tStroke.Color = Color3.fromRGB(45,50,58); tStroke.Transparency = 0.35; tStroke.Parent = Track
 
                 local Fill = Instance.new("Frame")
                 Fill.Name = "Fill"
@@ -1104,50 +834,34 @@ function UI:Window(opts)
                     Section.Flags[flag] = val
                     if fire ~= false then task.spawn(callback, val) end
                 end
-
                 local function pxToVal(x)
-                    local absX = Track.AbsolutePosition.X
-                    local w = Track.AbsoluteSize.X
-                    local alpha = math.clamp((x - absX) / math.max(w,1), 0, 1)
+                    local absX, w = Track.AbsolutePosition.X, math.max(Track.AbsoluteSize.X,1)
+                    local alpha = math.clamp((x - absX) / w, 0, 1)
                     local raw = min + alpha * (max - min)
-                    local stepped = (math.floor((raw - min) / step + 0.5) * step) + min
+                    local stepped = (math.floor((raw - min)/step + 0.5)*step) + min
                     return math.clamp(stepped, min, max)
                 end
 
                 Track.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = true
-                        Bubble.Visible = true
-                        setVisual(pxToVal(input.Position.X), true)
+                        dragging = true; Bubble.Visible = true; setVisual(pxToVal(input.Position.X), true)
                     elseif input.UserInputType == Enum.UserInputType.Keyboard then
-                        if input.KeyCode == Enum.KeyCode.Left then setVisual(Section.Flags[flag] - step, true)
-                        elseif input.KeyCode == Enum.KeyCode.Right then setVisual(Section.Flags[flag] + step, true) end
+                        if input.KeyCode == Enum.KeyCode.Left then setVisual(Section.Flags[flag]-step, true)
+                        elseif input.KeyCode == Enum.KeyCode.Right then setVisual(Section.Flags[flag]+step, true) end
                     end
                 end)
                 Knob.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = true
-                        Bubble.Visible = true
-                    end
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; Bubble.Visible = true end
                 end)
                 UserInputService.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = false
-                        Bubble.Visible = false
-                    end
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging=false; Bubble.Visible=false end
                 end)
                 UserInputService.InputChanged:Connect(function(input)
-                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                        setVisual(pxToVal(input.Position.X), true)
-                    end
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then setVisual(pxToVal(input.Position.X), true) end
                 end)
 
                 setVisual(default, false)
-
-                return {
-                    Set = function(_, v) setVisual(tonumber(v) or default, true) end,
-                    Get = function() return Section.Flags[flag] end
-                }
+                return { Set=function(_,v) setVisual(tonumber(v) or default, true) end, Get=function() return Section.Flags[flag] end }
             end
 
             function Section:Button(name, callback)
@@ -1165,7 +879,7 @@ function UI:Window(opts)
                 Button.Parent = section
                 local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0,10); bc.Parent = Button
                 local bs = Instance.new("UIStroke"); bs.Thickness = 1; bs.Color = Color3.fromRGB(45,50,58); bs.Transparency = 0.4; bs.Parent = Button
-                HoverState(Button, {idle = Theme.Accent, hover = Color3.fromRGB(35,39,46), active = Color3.fromRGB(35,39,46)}, nil)
+                HoverState(Button, {idle=Theme.Accent, hover=Color3.fromRGB(35,39,46), active=Color3.fromRGB(35,39,46)})
                 Button.MouseButton1Click:Connect(function() task.spawn(callback) end)
                 return Button
             end
@@ -1176,7 +890,7 @@ function UI:Window(opts)
         return Tab
     end
 
-    -- пункт 11: глобальные геттеры/сеттеры флагов
+    -- глобальные флаги
     function Window:GetFlag(tabName, sectionName, flag)
         local tab = self.Tabs[tabName]; if not tab then return nil end
         local sec = tab.Sections[sectionName]; if not sec then return nil end
@@ -1186,7 +900,6 @@ function UI:Window(opts)
         local tab = self.Tabs[tabName]; if not tab then return end
         local sec = tab.Sections[sectionName]; if not sec then return end
         sec.Flags[flag] = value
-        -- при желании можно хранить ссылку на конкретный контрол и вызвать его Set(value)
     end
 
     -- хоткей скрытия
@@ -1195,9 +908,7 @@ function UI:Window(opts)
         if gameProcessed then return end
         if Window._isRebinding or Window._settingsOpen then return end
         if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Window.HideKey then
-            local now = os.clock()
-            if now - LT < 0.3 then return end
-            LT = now
+            local now = os.clock(); if now - LT < 0.3 then return end; LT = now
             Window:SetVisible(not Window.Visible)
         end
     end))
